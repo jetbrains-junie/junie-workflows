@@ -1,0 +1,172 @@
+name: junie
+
+on:
+  workflow_call:
+    secrets:
+      GCP_DOCKER_JUNIE_KEY:
+        required: false
+    inputs:
+      workflow_params:
+        description: "JSON string containing all workflow parameters"
+        type: string
+        required: true
+
+jobs:
+  run-junie:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: read
+    steps:
+      - name: Extract workflow params
+        id: workflow-params
+        uses: actions/github-script@v7
+        env:
+          INPUT_PARAMS: ${{ inputs.workflow_params }}
+        with:
+          script: |
+            const params = JSON.parse(core.getInput('params'));
+            Object.keys(params).forEach((key) => {
+                core.setOutput(key, params[key]);
+            });
+            console.log(`Params are ${params}`);           
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.workflow-params.outputs.checkout_ref }}
+
+      - name: Prepare container and run Junie
+        if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
+        uses: devcontainers/ci@v0.3
+        env:
+          PROJECT_STACK: ${{ steps.workflow-params.outputs.project_stack }}
+          ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
+          ISSUE_BODY: ${{ steps.workflow-params.outputs.issue_body }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MATTERHORN_DEBUG_LOG: true
+        with:
+          imageName: project-devcontainer
+          push: never
+          env: |          
+            PROJECT_STACK
+            ISSUE_TITLE
+            ISSUE_BODY
+            GITHUB_TOKEN
+            MATTERHORN_DEBUG_LOG
+          runCmd: |
+            sudo apt-get -qq update >/dev/null
+            sudo apt-get -qq install -y default-jre >/dev/null
+
+            echo "Downloading ej-runner"
+            sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/243.78.1/junie-runner-0.0.1.jar" -O junie-runner.jar
+            
+            echo "Running ej-runner"
+            sudo -E java -jar junie-runner.jar
+
+      - name: Extracting .idea and ej-logs
+        if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
+        run: |
+          pwd
+          docker ps
+          docker cp "$(docker ps -q)":/workspaces/idea-logs ./idea-logs
+          docker cp "$(docker ps -q)":/workspaces/.matterhorn ./.matterhorn
+
+      - name: Run Junie without container
+        if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
+        timeout-minutes: 90
+        env:
+          PROJECT_STACK: ${{ steps.workflow-params.outputs.project_stack }}
+          ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
+          ISSUE_BODY: ${{ steps.workflow-params.outputs.issue_body }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MATTERHORN_DEBUG_LOG: true
+        run: |
+          sudo apt-get -qq update >/dev/null
+          sudo apt-get -qq install -y default-jre >/dev/null
+
+          echo "Downloading ej-runner"
+          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/243.78.1/junie-runner-0.0.1.jar" -O junie-runner.jar
+          
+          echo "Running ej-runner"
+          sudo -E java -jar junie-runner.jar
+          
+          echo "Copying logs to target dir..."
+          sudo cp -r ../idea-logs .
+          sudo cp -r ../.matterhorn .
+          sudo chown -R runner:runner ./idea-logs
+          sudo chown -R runner:runner ./.matterhorn
+
+      - name: Save junie result summary
+        id: junie_summary
+        continue-on-error: true
+        run: |
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$(cat .matterhorn/*issue_md.*swe_patch* | jq -r '.content.output')" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT          
+          echo "output is $GITHUB_OUTPUT"
+
+      - name: Archive Logs
+        if: always() && (steps.workflow-params.outputs.upload_logs == 'true')
+        uses: actions/upload-artifact@v4
+        with:
+          name: idea-logs
+          path: idea-logs/
+          include-hidden-files: 'true'
+          retention-days: 3
+
+      - name: Archive .matterhorn
+        if: always() && (steps.workflow-params.outputs.upload_logs == 'true')
+        uses: actions/upload-artifact@v4
+        with:
+          name: matterhorn-logs
+          path: .matterhorn
+          include-hidden-files: 'true'
+          retention-days: 3
+
+      - name: Restore or remove .idea directory
+        run: |
+          sudo rm -rf idea-logs
+          sudo rm -rf .matterhorn
+          sudo rm -rf .output.txt
+          sudo rm -rf junie-runner.jar
+
+          if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
+            echo "Restoring tracked '.idea' directory"
+            git checkout -- .idea
+            git clean -f -d .idea            
+          else
+            echo "Removing untracked '.idea' directory"
+            sudo rm -rf .idea
+          fi
+
+      - name: Create Pull Request
+        if: steps.workflow-params.outputs.run_type == 'new_issue'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ steps.workflow-params.outputs.app_token }}
+          commit-message: "chore(junie): ${{ steps.workflow-params.outputs.issue_title }} \n changes from the task: #${{ steps.workflow-params.outputs.issue_id }}"
+          title: "[Junie]: ${{ steps.workflow-params.outputs.issue_title }}"
+          body: |
+            ## 📌 PR Details
+
+            - 🔗 **Issue:** #${{ steps.workflow-params.outputs.issue_id }}
+            - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}
+            
+            ### 📝 Original Issue Description  
+            > ${{ steps.workflow-params.outputs.issue_body }}
+            
+            ### 📊 Junie Summary
+            ${{ steps.junie_summary.outputs.summary }}
+          branch: junie-issue-${{ steps.workflow-params.outputs.issue_id }}
+          base: ${{ steps.workflow-params.outputs.checkout_ref }}
+
+      - name: Commit changes to PR branch
+        if: steps.workflow-params.outputs.run_type == 'fix_all' || steps.workflow-params.outputs.run_type == 'fix_single'
+        run: |
+          git config --global user.name 'junie[bot]'
+          git config --global user.email 'junie[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "[${{ steps.workflow-params.outputs.issue_id }}]" -m "summary: ${{ steps.junie_summary.outputs.summary }}"
+          git push origin HEAD:${{ steps.workflow-params.outputs.checkout_ref }}
