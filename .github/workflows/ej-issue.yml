@@ -64,6 +64,7 @@ jobs:
             
             echo "Running ej-runner"
             sudo -E java -jar junie-runner.jar
+            
 
       - name: Extracting .idea and ej-logs
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
@@ -72,6 +73,7 @@ jobs:
           docker ps
           docker cp "$(docker ps -q)":/workspaces/idea-logs ./idea-logs
           docker cp "$(docker ps -q)":/workspaces/.matterhorn ./.matterhorn
+          sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -97,6 +99,7 @@ jobs:
           sudo cp -r ../.matterhorn .
           sudo chown -R runner:runner ./idea-logs
           sudo chown -R runner:runner ./.matterhorn
+          sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Save junie result summary
         id: junie_summary
