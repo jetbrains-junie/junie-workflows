@@ -9,7 +9,7 @@ Simple setup. No drama.
 Add `junie` word to your issue title and describe the task — Junie will generate a Pull Request.
 
 ### Fix via Comments:
-Comment `@jetbrains-junie: fix` on an issue — Junie will patch the code on and create Pull Request.
+Comment `@jetbrains-junie fix` on an issue — Junie will patch the code on and create Pull Request.
 
 ## ✅ How to Enable
 
