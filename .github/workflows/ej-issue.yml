@@ -6,6 +6,14 @@ on:
       GCP_DOCKER_JUNIE_KEY:
         required: false
     inputs:
+      fix_conflicts:
+        description: "temporary params, not using in workflow"
+        type: boolean
+        required: false
+      skip_workflow_file_validation:
+        description: "temporary params, not using in workflow"
+        type: boolean
+        required: false
       workflow_params:
         description: "JSON string containing all workflow parameters"
         type: string
@@ -17,7 +25,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      packages: read
     steps:
       - name: Extract workflow params
         id: workflow-params
