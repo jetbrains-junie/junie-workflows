@@ -151,7 +151,7 @@ jobs:
             sudo rm -rf .idea
           fi
 
-      - name: Create Pull Request
+      - name: Create Pull Request for new issue
         if: steps.workflow-params.outputs.run_type == 'new_issue'
         uses: peter-evans/create-pull-request@v5
         with:
@@ -171,6 +171,20 @@ jobs:
             ${{ steps.junie_summary.outputs.summary }}
           branch: junie-issue-${{ steps.workflow-params.outputs.issue_id }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
+
+      - name: Create Pull Request for resolve conflicts
+         if: steps.workflow-params.outputs.run_type == 'resolve_conflicts'
+         uses: peter-evans/create-pull-request@v5
+         with:
+           token: ${{ steps.workflow-params.outputs.app_token }}
+           commit-message: "chore(junie): resolve conflicts for ${{ steps.workflow-params.outputs.checkout_ref }}"
+           title: "[Junie]: resolve conflicts for ${{ steps.workflow-params.outputs.checkout_ref }}"
+           body: |
+             ## 📌 PR Details
+             ### 📊 Junie Summary
+             ${{ steps.junie_summary.outputs.summary }}
+           branch: junie-resolve-${{ steps.workflow-params.outputs.checkout_ref }}
+           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
       - name: Commit changes to PR branch
         if: steps.workflow-params.outputs.run_type == 'fix_all' || steps.workflow-params.outputs.run_type == 'fix_single'
