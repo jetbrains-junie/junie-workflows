@@ -118,7 +118,7 @@ jobs:
           echo "output is $GITHUB_OUTPUT"
 
       - name: Archive Logs
-        if: always() && (steps.workflow-params.outputs.upload_logs == 'true')
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: idea-logs
@@ -127,7 +127,7 @@ jobs:
           retention-days: 3
 
       - name: Archive .matterhorn
-        if: always() && (steps.workflow-params.outputs.upload_logs == 'true')
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: matterhorn-logs
