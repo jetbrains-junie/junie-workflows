@@ -159,13 +159,16 @@ jobs:
           commit-message: "chore(junie): ${{ steps.workflow-params.outputs.issue_title }} \n changes from the task: #${{ steps.workflow-params.outputs.issue_id }}"
           title: "[Junie]: ${{ steps.workflow-params.outputs.issue_title }}"
           body: |
-            ## 📌 PR Details
-
+            ## 📌 Hey! This PR was made for you with Junie, the coding agent by JetBrains **Early Access Preview**
+            
+            It's still learning, developing, and might make mistakes. Please make sure you review the changes before you accept them.
+            We’d love your feedback — join our Discord to share bugs, ideas, or memes: [here](https://discord.gg/H7yqsSxT)
+                                                              
             - 🔗 **Issue:** #${{ steps.workflow-params.outputs.issue_id }}
             - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}
             
             ### 📝 Original Issue Description  
-            > ${{ steps.workflow-params.outputs.issue_body }}
+            ${{ steps.workflow-params.outputs.issue_body }}
             
             ### 📊 Junie Summary
             ${{ steps.junie_summary.outputs.summary }}
