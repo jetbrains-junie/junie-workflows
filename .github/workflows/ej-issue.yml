@@ -47,6 +47,7 @@ jobs:
       - name: Prepare container and run Junie
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         uses: devcontainers/ci@v0.3
+        timeout-minutes: 50
         env:
           PROJECT_STACK: ${{ steps.workflow-params.outputs.project_stack }}
           ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
@@ -84,7 +85,7 @@ jobs:
 
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
-        timeout-minutes: 90
+        timeout-minutes: 50
         env:
           PROJECT_STACK: ${{ steps.workflow-params.outputs.project_stack }}
           ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
