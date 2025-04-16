@@ -67,7 +67,7 @@ jobs:
             sudo apt-get -qq install -y default-jre >/dev/null
 
             echo "Downloading ej-runner"
-            sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/243.78.1/junie-runner-0.0.1.jar" -O junie-runner.jar
+            sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/19.1/junie-runner-19.1.jar" -O junie-runner.jar
             
             echo "Running ej-runner"
             sudo -E java -jar junie-runner.jar
@@ -96,7 +96,7 @@ jobs:
           sudo apt-get -qq install -y default-jre >/dev/null
 
           echo "Downloading ej-runner"
-          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/243.78.1/junie-runner-0.0.1.jar" -O junie-runner.jar
+          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/19.1/junie-runner-19.1.jar" -O junie-runner.jar
           
           echo "Running ej-runner"
           sudo -E java -jar junie-runner.jar
