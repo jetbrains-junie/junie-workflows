@@ -40,17 +40,9 @@ jobs:
     uses: jetbrains-junie/junie-workflows/.github/workflows/ej-issue.yml@main
     with:
       workflow_params: ${{ inputs.workflow_params }}
-      fix_conflicts: true
 ```
-
-## ⚙️ Automation Workflow
-
-Junie can automatically resolve merge conflicts in your pull requests!  
-If `fix_conflicts: true` is set in the workflow inputs, Junie will listen for any changes to the base or head branches and create a conflict-fix PR when needed.
 
 ## 🔧 Other Goodies
 
-Examples & Recipes: junie-demo repository [TODO ADD DEMO]
-
-JetBrains IDE Plugin: [Install from Marketplace](https://plugins.jetbrains.com/plugin/26104-jetbrains-junie-eap)
+JetBrains IDE Plugin: [Install](https://www.jetbrains.com/junie/)
 
