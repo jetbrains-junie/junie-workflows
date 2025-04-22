@@ -162,6 +162,10 @@ jobs:
             sudo rm -rf .idea
           fi
 
+      - name: Reset git changes from junie
+        run: |
+           git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
+
       - name: Create Pull Request for new issue
         if: steps.workflow-params.outputs.run_type == 'new_issue'
         uses: peter-evans/create-pull-request@v5
