@@ -94,7 +94,6 @@ jobs:
             sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
 
             echo "Running ej-runner"
-            sudo update-alternatives --config java
             sudo -E java -jar junie-runner.jar
             
 
@@ -136,7 +135,6 @@ jobs:
           sudo java --version
           
           echo "Running ej-runner"
-          sudo update-alternatives --config java
           sudo -E java -jar junie-runner.jar
           
           echo "Copying logs to target dir..."
