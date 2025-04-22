@@ -34,10 +34,16 @@ jobs:
         with:
           script: |
             const params = JSON.parse(core.getInput('params'));
-            Object.keys(params).forEach((key) => {
-                core.setOutput(key, params[key]);
-            });
-            console.log(`Params are ${params}`);           
+            // for now we always use this default params for idea, junie_plugin and junie_runner versions
+            const defaultParams = {
+              idea_version: '2024.3.5',
+              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/95.1-cloud-eap/ej-cloud-eap-243.95.1.zip',
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/22.1/junie-runner-22.1.jar'
+            }
+            const finalParams = { ...defaultParams, ...params };
+            Object.keys(finalParams).forEach((key) => {
+                core.setOutput(key, finalParams[key]);
+            });         
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,6 +59,8 @@ jobs:
           ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
           ISSUE_BODY: ${{ steps.workflow-params.outputs.issue_body }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
+          JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
         with:
           imageName: project-devcontainer
@@ -68,7 +76,7 @@ jobs:
             sudo apt-get -qq install -y default-jre >/dev/null
 
             echo "Downloading ej-runner"
-            sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/19.1/junie-runner-19.1.jar" -O junie-runner.jar
+            sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
             
             echo "Running ej-runner"
             sudo -E java -jar junie-runner.jar
@@ -91,13 +99,15 @@ jobs:
           ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
           ISSUE_BODY: ${{ steps.workflow-params.outputs.issue_body }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
+          JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
         run: |
           sudo apt-get -qq update >/dev/null
           sudo apt-get -qq install -y default-jre >/dev/null
 
           echo "Downloading ej-runner"
-          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/19.1/junie-runner-19.1.jar" -O junie-runner.jar
+          sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
           
           echo "Running ej-runner"
           sudo -E java -jar junie-runner.jar
@@ -117,15 +127,6 @@ jobs:
           echo "$(cat .matterhorn/*issue_md.*swe_patch* | jq -r '.content.output')" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT          
           echo "output is $GITHUB_OUTPUT"
-
-      - name: Archive Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: idea-logs
-          path: idea-logs/
-          include-hidden-files: 'true'
-          retention-days: 3
 
       - name: Archive .matterhorn
         if: always()
@@ -151,6 +152,12 @@ jobs:
             echo "Removing untracked '.idea' directory"
             sudo rm -rf .idea
           fi
+
+      # Uncomment when we support auto resolve conflicts
+      # - name: Reset git changes from junie
+      #   if: always()
+      #   run: |
+      #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
       - name: Create Pull Request for new issue
         if: steps.workflow-params.outputs.run_type == 'new_issue'
