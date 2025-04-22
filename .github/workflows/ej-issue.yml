@@ -128,15 +128,6 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT          
           echo "output is $GITHUB_OUTPUT"
 
-      - name: Archive Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: idea-logs
-          path: idea-logs/
-          include-hidden-files: 'true'
-          retention-days: 3
-
       - name: Archive .matterhorn
         if: always()
         uses: actions/upload-artifact@v4
@@ -162,9 +153,11 @@ jobs:
             sudo rm -rf .idea
           fi
 
-      - name: Reset git changes from junie
-        run: |
-           git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
+      # Uncomment when we support auto resolve conflicts
+      # - name: Reset git changes from junie
+      #   if: always()
+      #   run: |
+      #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
       - name: Create Pull Request for new issue
         if: steps.workflow-params.outputs.run_type == 'new_issue'
