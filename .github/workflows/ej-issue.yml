@@ -170,7 +170,7 @@ jobs:
             ## 📌 Hey! This PR was made for you with Junie, the coding agent by JetBrains **Early Access Preview**
             
             It's still learning, developing, and might make mistakes. Please make sure you review the changes before you accept them.
-            We’d love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/eap).
+            We’d love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/github).
                                                               
             - 🔗 **Issue:** #${{ steps.workflow-params.outputs.issue_id }}
             - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}
