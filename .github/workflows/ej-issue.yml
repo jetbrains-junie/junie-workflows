@@ -37,8 +37,8 @@ jobs:
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
               idea_version: '2024.3.5',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/95.1-cloud-eap/ej-cloud-eap-243.95.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/22.1/junie-runner-22.1.jar'
+              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/99.1-cloud-eap/ej-cloud-eap-243.99.1.zip',
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/29.1/junie-runner-29.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
             Object.keys(finalParams).forEach((key) => {
@@ -73,12 +73,26 @@ jobs:
             MATTERHORN_DEBUG_LOG
             JUNIE_DOWNLOAD_URL
           runCmd: |
-            sudo apt-get -qq update >/dev/null
-            sudo apt-get -qq install -y default-jre >/dev/null
+            # Check if JAVA_HOME is set
+            if [ -z "$JAVA_HOME" ]; then
+              echo "JAVA_HOME is not set."
+              # Check if java is available in PATH
+              if ! command -v java >/dev/null 2>&1; then
+                echo "Java is not available in PATH. Proceeding with installation..."
+                # Install OpenJDK 21 JRE
+                sudo apt-get -qq update >/dev/null
+                sudo apt-get -qq install -y openjdk-21-jre >/dev/null
+                echo "OpenJDK 21 JRE installed successfully."
+              else
+                echo "Java is available in PATH. No need to install."
+              fi
+            else
+              echo "JAVA_HOME is set to '$JAVA_HOME'. No need to install."
+            fi
 
             echo "Downloading ej-runner"
             sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
-            
+
             echo "Running ej-runner"
             sudo -E java -jar junie-runner.jar
             
@@ -104,9 +118,6 @@ jobs:
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
         run: |
-          sudo apt-get -qq update >/dev/null
-          sudo apt-get -qq install -y default-jre >/dev/null
-
           echo "Downloading ej-runner"
           sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
           
