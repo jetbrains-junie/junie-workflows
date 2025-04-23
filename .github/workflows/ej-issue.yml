@@ -71,6 +71,7 @@ jobs:
             ISSUE_BODY
             GITHUB_TOKEN
             MATTERHORN_DEBUG_LOG
+            JUNIE_DOWNLOAD_URL
           runCmd: |
             # Check if JAVA_HOME is set
             if [ -z "$JAVA_HOME" ]; then
@@ -117,23 +118,6 @@ jobs:
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
         run: |
-          # Check if JAVA_HOME is set
-          if [ -z "$JAVA_HOME" ]; then
-          echo "JAVA_HOME is not set."
-          # Check if java is available in PATH
-          if ! command -v java >/dev/null 2>&1; then
-          echo "Java is not available in PATH. Proceeding with installation..."
-          # Install OpenJDK 21 JRE
-          sudo apt-get -qq update >/dev/null
-          sudo apt-get -qq install -y openjdk-21-jre >/dev/null
-          echo "OpenJDK 21 JRE installed successfully."
-          else
-          echo "Java is available in PATH. No need to install."
-          fi
-          else
-          echo "JAVA_HOME is set to '$JAVA_HOME'. No need to install."
-          fi
-
           echo "Downloading ej-runner"
           sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
           
