@@ -71,6 +71,7 @@ jobs:
             ISSUE_BODY
             GITHUB_TOKEN
             MATTERHORN_DEBUG_LOG
+            JUNIE_DOWNLOAD_URL
           runCmd: |
             sudo apt-get -qq update >/dev/null
             sudo apt-get -qq install -y default-jre >/dev/null
