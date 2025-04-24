@@ -38,7 +38,7 @@ jobs:
             const defaultParams = {
               idea_version: '2024.3.5',
               junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/99.1-cloud-eap/ej-cloud-eap-243.99.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/33.1/junie-runner-33.1.jar'
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/spak-test-1/junie-runner-SNAPSHOT.jar'
             }
             const finalParams = { ...defaultParams, ...params };
             Object.keys(finalParams).forEach((key) => {
@@ -73,6 +73,9 @@ jobs:
             MATTERHORN_DEBUG_LOG
             JUNIE_DOWNLOAD_URL
           runCmd: |
+            echo "Downloading ej-runner"
+            wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
+
             # Check if JAVA_HOME is set
             if [ -z "$JAVA_HOME" ]; then
               echo "JAVA_HOME is not set."
@@ -81,7 +84,7 @@ jobs:
                 echo "Java is not available in PATH. Proceeding with installation..."
                 # Install OpenJDK 21 JRE
                 sudo apt-get -qq update >/dev/null
-                sudo apt-get -qq install -y openjdk-21-jre >/dev/null
+                sudo apt-get -qq install -y openjdk-17-jre-headless >/dev/null
                 echo "OpenJDK 21 JRE installed successfully."
               else
                 echo "Java is available in PATH. No need to install."
@@ -90,11 +93,14 @@ jobs:
               echo "JAVA_HOME is set to '$JAVA_HOME'. No need to install."
             fi
 
-            echo "Downloading ej-runner"
-            sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
-
             echo "Running ej-runner"
-            sudo -E java -jar junie-runner.jar
+            if [ -z "$JAVA_HOME" ]; then
+              java -version
+              java -jar junie-runner.jar
+            else
+              "$JAVA_HOME/bin/java" -version
+              "$JAVA_HOME/bin/java" -jar junie-runner.jar
+            fi
             
 
       - name: Extracting .idea and ej-logs
