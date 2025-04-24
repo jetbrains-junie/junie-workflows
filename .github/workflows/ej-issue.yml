@@ -106,6 +106,13 @@ jobs:
           docker cp "$(docker ps -q)":/workspaces/.matterhorn ./.matterhorn
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
+      - name: Prepare 21 Java for non-container run
+        uses: actions/setup-java@v4
+        if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
+        with:
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: '21'
+
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         timeout-minutes: 50
