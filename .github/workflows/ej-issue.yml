@@ -81,7 +81,7 @@ jobs:
                 echo "Java is not available in PATH. Proceeding with installation..."
                 # Install OpenJDK 21 JRE
                 sudo apt-get -qq update >/dev/null
-                sudo apt-get -qq install -y openjdk-21-jre >/dev/null
+                sudo apt-get -qq install -y openjdk-17-jre >/dev/null
                 echo "OpenJDK 21 JRE installed successfully."
               else
                 echo "Java is available in PATH. No need to install."
