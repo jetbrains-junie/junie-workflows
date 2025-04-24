@@ -95,8 +95,10 @@ jobs:
 
             echo "Running ej-runner"
             if [ -z "$JAVA_HOME" ]; then
+              java -version
               java -jar junie-runner.jar
             else
+              "$JAVA_HOME/bin/java" -version
               "$JAVA_HOME/bin/java" -jar junie-runner.jar
             fi
             
