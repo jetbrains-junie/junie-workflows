@@ -79,10 +79,10 @@ jobs:
               # Check if java is available in PATH
               if ! command -v java >/dev/null 2>&1; then
                 echo "Java is not available in PATH. Proceeding with installation..."
-                # Install OpenJDK 21 JRE
+                # Install OpenJDK 17 JRE
                 sudo apt-get -qq update >/dev/null
                 sudo apt-get -qq install -y openjdk-17-jre >/dev/null
-                echo "OpenJDK 21 JRE installed successfully."
+                echo "OpenJDK 17 JRE installed successfully."
               else
                 echo "Java is available in PATH. No need to install."
               fi
@@ -111,7 +111,7 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         with:
           distribution: 'temurin' # Need to be synced with "Force setting..." command in the next step
-          java-version: '21'
+          java-version: '17'
 
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -130,8 +130,8 @@ jobs:
 
           # https://github.com/actions/setup-java/issues/701
           echo "Force setting java version for sudo subprocesses"
-          sudo update-alternatives --set java /usr/lib/jvm/temurin-21-jdk-amd64/bin/java
-          sudo update-alternatives --set javac /usr/lib/jvm/temurin-21-jdk-amd64/bin/javac
+          sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+          sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
           sudo java --version
           
           echo "Running ej-runner"
