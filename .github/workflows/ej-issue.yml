@@ -38,7 +38,7 @@ jobs:
             const defaultParams = {
               idea_version: '2024.3.5',
               junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/99.1-cloud-eap/ej-cloud-eap-243.99.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/29.1/junie-runner-29.1.jar'
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/32.1/junie-runner-32.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
             Object.keys(finalParams).forEach((key) => {
@@ -110,7 +110,7 @@ jobs:
         uses: actions/setup-java@v4
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
+          distribution: 'temurin' # Need to be synced with "Force setting..." command in the next step
           java-version: '21'
 
       - name: Run Junie without container
@@ -127,6 +127,12 @@ jobs:
         run: |
           echo "Downloading ej-runner"
           sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
+
+          # https://github.com/actions/setup-java/issues/701
+          echo "Force setting java version for sudo subprocesses"
+          sudo update-alternatives --set java /usr/lib/jvm/temurin-21-jdk-amd64/bin/java
+          sudo update-alternatives --set javac /usr/lib/jvm/temurin-21-jdk-amd64/bin/javac
+          sudo java --version
           
           echo "Running ej-runner"
           sudo -E java -jar junie-runner.jar
