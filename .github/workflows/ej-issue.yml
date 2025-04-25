@@ -73,6 +73,9 @@ jobs:
             MATTERHORN_DEBUG_LOG
             JUNIE_DOWNLOAD_URL
           runCmd: |
+            echo "Downloading ej-runner"
+            wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
+
             # Check if JAVA_HOME is set
             if [ -z "$JAVA_HOME" ]; then
               echo "JAVA_HOME is not set."
@@ -90,11 +93,14 @@ jobs:
               echo "JAVA_HOME is set to '$JAVA_HOME'. No need to install."
             fi
 
-            echo "Downloading ej-runner"
-            sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
-
             echo "Running ej-runner"
-            sudo -E java -jar junie-runner.jar
+            if [ -z "$JAVA_HOME" ]; then
+              java -version
+              java -jar junie-runner.jar
+            else
+              "$JAVA_HOME/bin/java" -version
+              "$JAVA_HOME/bin/java" -jar junie-runner.jar
+            fi
             
 
       - name: Extracting .idea and ej-logs
