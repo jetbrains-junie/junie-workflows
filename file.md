@@ -6,9 +6,10 @@ Junie is a coding agent by JetBrains which redefines how you code.
 We designed it to work in close collaboration with a developer for routine and complex tasks, opening the new way to
 code in both IDEs and outside the IDE, on GitHub.
 
-## ✅ How to Enable
+## How to Enable
 
 1. Install the [GitHub App](https://github.com/apps/jetbrains-junie), and we’ll handle setup for you 💫
+
    Junie will automatically create a Pull Request with the workflow file and install itself in your repository.
    Or manually add the following workflow file to `.github/workflows/ej-issue.yml`:
 
@@ -53,17 +54,17 @@ jobs:
 > 
 > To get access, please join our [Discord](https://jb.gg/junie/github) or contact us to be added to the whitelist.
 
-### 🎯 How Junie Works
+###  How Junie Works
 
 Junie can be triggered in two ways:
 
-By creating an Issue with the word `junie` in the title.
+1️⃣ By creating an Issue with the word `junie` in the title.
 
-By posting a Comment containing `@jetbrains-junie` fix.
+2️⃣ By posting a Comment containing `@jetbrains-junie` fix.
 
 _Currently, file attachments are not supported — please only include text instructions._
 
-### 🛠️ PR Improvement via Comments
+### PR Improvement via Comments
 
 * Junie listens for comments containing `@jetbrains-junie` fix.
 
