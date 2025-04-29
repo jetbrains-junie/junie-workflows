@@ -2,22 +2,15 @@
 
 Welcome to the **Early Access Program** for Junie for GitHub.
 
-Junie is a coding agent by JetBrains which redefines how you code. 
-We designed it to work in close collaboration with a developer for routine and complex tasks, opening the new way to code in both IDEs and outside the IDE, on GitHub.
-
-## ✨ What Can Junie Do?
-
-### Create PRs from Issues:
-Add `junie` word to your issue title and describe the task — Junie will generate a Pull Request.
-
-### Fix via Comments:
-Comment `@jetbrains-junie fix` on an issue — Junie will patch the code on and create Pull Request.
+Junie is a coding agent by JetBrains which redefines how you code.
+We designed it to work in close collaboration with a developer for routine and complex tasks, opening the new way to
+code in both IDEs and outside the IDE, on GitHub.
 
 ## ✅ How to Enable
 
-1. Install the [GitHub App](https://github.com/apps/jetbrains-junie), and we’ll handle setup for you 💫 
-Junie will automatically create a Pull Request with the workflow file and install itself in your repository.
-Or manually add the following workflow file to `.github/workflows/ej-issue.yml`:
+1. Install the [GitHub App](https://github.com/apps/jetbrains-junie), and we’ll handle setup for you 💫
+   Junie will automatically create a Pull Request with the workflow file and install itself in your repository.
+   Or manually add the following workflow file to `.github/workflows/ej-issue.yml`:
 
 <details> <summary>Click to view the workflow file</summary>
 
@@ -31,7 +24,7 @@ permissions:
   packages: read
 
 on:
-  workflow_dispatch:     
+  workflow_dispatch:
     inputs:
       run_id:
         description: "id of workflow process"
@@ -49,13 +42,52 @@ jobs:
 
 </details>
 
-2. It will also add a `devcontainer.json` file to help run Junie in a containerized environment.
+2. Junie will automatically create a Pull Request with the workflow file and install itself in your repository.
 
-3. Please review the `devcontainer.json` carefully and adjust it if needed — the better it fits your project, the better Junie will perform! 🧠
+3. It will also add a devcontainer.json file to help run Junie in a containerized environment.
 
+4. Please review the devcontainer.json carefully and adjust it if needed. We recommend verifying it locally using VS
+   Code or Docker.
+
+> Note: Junie is currently in closed Early Access.
+> 
+> To get access, please join our [Discord](https://jb.gg/junie/github) or contact us to be added to the whitelist.
+
+### 🎯 How Junie Works
+
+Junie can be triggered in two ways:
+
+By creating an Issue with the word `junie` in the title.
+
+By posting a Comment containing `@jetbrains-junie` fix.
+
+_Currently, file attachments are not supported — please only include text instructions._
+
+### 🛠️ PR Improvement via Comments
+
+* Junie listens for comments containing `@jetbrains-junie` fix.
+
+* If the comment is part of a review (start review → add comments → submit review), Junie waits until the review is
+  submitted before processing.
+
+* If the comment is added directly to the conversation tab or as a single comment, Junie processes it immediately.
+
+* If the PR was created by Junie or by the PR author themselves, commits are pushed directly to the branch.
+
+* Otherwise, Junie creates a new Pull Request based on the current branch.
+
+* After the workflow finishes, Junie replies to the PR with a summary and a link to the new PR (if created).
+
+* Junie does not allow running multiple workflows simultaneously on the same branch — if already running, it responds
+  with a message.
+
+* Successfully processed comments are marked with a :done: emoji to prevent re-processing.
+
+_Advanced configuration options will be available later, including custom trigger keywords and push strategies._
 
 ## 🔧 Other Goodies
+
 Join our [Discord](https://jb.gg/junie/github) to share your experience and get help.
 
-JetBrains IDE Plugin: [Install from Marketplace](https://plugins.jetbrains.com/plugin/26104-jetbrains-junie-eap)
+JetBrains IDE Plugin: [Install from Marketplace](https://plugins.jetbrains.com/plugin/26104-jetbrains-junie-eap).
 
