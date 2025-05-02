@@ -47,8 +47,7 @@ jobs:
 
 3. It will also add a devcontainer.json file to help run Junie in a containerized environment.
 
-4. Please review the devcontainer.json carefully and adjust it if needed. We recommend verifying it locally using VS
-   Code or Docker.
+4. Please review the devcontainer.json carefully and adjust it if needed.
 
 > Note: Junie is currently in closed Early Access.
 > 
