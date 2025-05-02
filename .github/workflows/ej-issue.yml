@@ -18,10 +18,15 @@ on:
         description: "JSON string containing all workflow parameters"
         type: string
         required: true
+      runs-on:
+        description: "Which runner use to run junie"
+        type: string
+        default: "ubuntu-latest"
+        required: false
 
 jobs:
   run-junie:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
       pull-requests: write
