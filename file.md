@@ -54,19 +54,19 @@ jobs:
 > 
 > To get access, please join our [Discord](https://jb.gg/junie/github) or contact us to be added to the whitelist.
 
-###  How Junie Works
+###  How Junie Works in Issues
 
 Junie can be triggered in two ways:
 
 1️⃣ By creating an Issue with the word `junie` in the title.
 
-2️⃣ By posting a Comment containing `@jetbrains-junie` fix.
+2️⃣ By posting a Comment containing `@jetbrains-junie fix` with description.
 
 _Currently, file attachments are not supported — please only include text instructions._
 
 ### PR Improvement via Comments
 
-* Junie listens for comments containing `@jetbrains-junie` fix.
+* Junie listens for comments containing `@jetbrains-junie fix`.
 
 * If the comment is part of a review (start review → add comments → submit review), Junie waits until the review is
   submitted before processing.
