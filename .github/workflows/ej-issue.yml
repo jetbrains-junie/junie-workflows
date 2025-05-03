@@ -209,7 +209,8 @@ jobs:
             We’d love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/github).
                                                               
             - 🔗 **Issue:** #${{ steps.workflow-params.outputs.issue_id }}
-            - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}
+            - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}
+            - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}            
             
             ### 📝 Original Issue Description  
             ${{ steps.workflow-params.outputs.issue_body }}
