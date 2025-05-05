@@ -2,18 +2,37 @@
 
 Welcome to the **Early Access Program** for Junie for GitHub.
 
-Junie is a coding agent by JetBrains which redefines how you code.
-We designed it to work in close collaboration with a developer for routine and complex tasks, opening the new way to
-code in both IDEs and outside the IDE, on GitHub.
+Junie is a coding agent by JetBrains that redefines how you code.  
+We designed it to work in close collaboration with developers — handling routine and complex tasks both in your IDE and right here, on GitHub.
 
-## How to Enable
+---
 
-1. Install the [GitHub App](https://github.com/apps/jetbrains-junie), and we’ll handle setup for you 💫
+## ✅ How to Enable Junie
 
-   Junie will automatically create a Pull Request with the workflow file and install itself in your repository.
-   Or manually add the following workflow file to `.github/workflows/ej-issue.yml`:
+### Install the GitHub App
 
-<details> <summary>Click to view the workflow file</summary>
+Simply install the [Junie GitHub App](https://github.com/apps/jetbrains-junie) — setup is automatic! 💫
+
+### What Happens After Installation
+
+Once installed, Junie will automatically:
+
+- Create a Pull Request with the required workflow file (`.github/workflows/ej-issue.yml`)
+- Add a `devcontainer.json` file to your repository to support containerized environments
+
+You can review and adjust the `devcontainer.json` file if needed, but **no manual configuration is required** to get started.
+
+> Junie is currently in closed Early Access.  
+> To join, please visit our [Discord](https://jb.gg/junie/github) or ask to be added to the whitelist.
+
+---
+
+### 📝 Manual Setup (optional)
+
+If needed, you can configure Junie manually by adding the following file to `.github/workflows/ej-issue.yml`:
+
+<details>
+<summary>Click to view the workflow file</summary>
 
 ```yaml
 name: Junie
@@ -43,51 +62,37 @@ jobs:
 
 </details>
 
-2. Junie will automatically create a Pull Request with the workflow file and install itself in your repository.
+---
 
-3. It will also add a devcontainer.json file to help run Junie in a containerized environment.
+## How Junie Works
 
-4. Please review the devcontainer.json carefully and adjust it if needed.
+### Trigger Junie from Issues
 
-> Note: Junie is currently in closed Early Access.
-> 
-> To get access, please join our [Discord](https://jb.gg/junie/github) or contact us to be added to the whitelist.
+1. Create an **Issue** with the word `junie` in the title.
+2. Or add a **Comment** with `@jetbrains-junie` to an existing issue.
 
-###  How Junie Works in Issues
+> _Note: File attachments are not yet supported. Please provide your request in plain text._
 
-Junie can be triggered in two ways:
+---
 
-1️⃣ By creating an Issue with the word `junie` in the title.
+### Pull Requests with Junie
 
-2️⃣ By posting a Comment containing `@jetbrains-junie fix` with description.
+Junie helps you iterate on pull requests with smart suggestions:
 
-_Currently, file attachments are not supported — please only include text instructions._
+- Comments with `@jetbrains-junie` are picked up and processed.
+- If part of a **code review**, Junie waits until the review is submitted.
+- If it’s a **standalone comment** or on the **conversation tab**, Junie runs immediately.
+- If the PR was created by Junie or the author, fixes are committed to the same branch.
+- Otherwise, Junie creates a **new PR** with the changes.
+- After processing, Junie leaves a summary in a PR comment (and link to the new PR if applicable).
+- Parallel runs on the same PR branch are prevented.
+- Comments that have been processed are marked with the `:done:` emoji.
 
-### PR Improvement via Comments
+> _Note: Advanced configuration options (like custom keywords or target branches) are coming soon._
 
-* Junie listens for comments containing `@jetbrains-junie fix`.
-
-* If the comment is part of a review (start review → add comments → submit review), Junie waits until the review is
-  submitted before processing.
-
-* If the comment is added directly to the conversation tab or as a single comment, Junie processes it immediately.
-
-* If the PR was created by Junie or by the PR author themselves, commits are pushed directly to the branch.
-
-* Otherwise, Junie creates a new Pull Request based on the current branch.
-
-* After the workflow finishes, Junie replies to the PR with a summary and a link to the new PR (if created).
-
-* Junie does not allow running multiple workflows simultaneously on the same branch — if already running, it responds
-  with a message.
-
-* Successfully processed comments are marked with a :done: emoji to prevent re-processing.
-
-_Advanced configuration options will be available later, including custom trigger keywords and push strategies._
+---
 
 ## 🔧 Other Goodies
 
-Join our [Discord](https://jb.gg/junie/github) to share your experience and get help.
-
-JetBrains IDE Plugin: [Install from Marketplace](https://plugins.jetbrains.com/plugin/26104-jetbrains-junie-eap).
-
+- Join our [Discord](https://jb.gg/junie/github) to share your feedback and get help from the team.
+- Try Junie in your IDE: [JetBrains Plugin Marketplace](https://plugins.jetbrains.com/plugin/26104-jetbrains-junie-eap).
