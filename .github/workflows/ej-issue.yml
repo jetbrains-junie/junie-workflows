@@ -42,7 +42,7 @@ jobs:
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
               idea_version: '2025.1',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/ej-manual/ej-cloud-eap-251.110.1.zip',
+              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/ej-manual/ej-cloud-eap-251.111.1.zip',
               junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/ej-manual/ej-cloud-runner-65.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
