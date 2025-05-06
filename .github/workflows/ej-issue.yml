@@ -57,8 +57,8 @@ jobs:
 
       - name: Init git configuration
         run: |
-          git config --global user.name 'junie[bot]'
-          git config --global user.email 'junie[bot]@users.noreply.github.com'
+          git config --global user.name 'junie-eap[bot]'
+          git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
 
       - name: Make all scripts in .devcontainer executable
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
@@ -115,6 +115,7 @@ jobs:
               "$JAVA_HOME/bin/java" -version
               "$JAVA_HOME/bin/java" -jar junie-runner.jar
             fi
+            
 
       - name: Extracting .idea and ej-logs
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
@@ -131,7 +132,7 @@ jobs:
           
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
-      - name: Prepare 21 Java for non-container run
+      - name: Prepare 17 Java for non-container run
         uses: actions/setup-java@v4
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         with:
@@ -209,8 +210,8 @@ jobs:
       #   run: |
       #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
-      - name: Create Pull Request for new issue
-        if: steps.workflow-params.outputs.run_type == 'new_issue'
+      - name: Make Pull Request for the changes
+        if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ steps.workflow-params.outputs.app_token }}
@@ -226,33 +227,14 @@ jobs:
             - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}
             - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}            
             
-            ### 📝 Original Issue Description  
-            ${{ steps.workflow-params.outputs.issue_body }}
-            
             ### 📊 Junie Summary
             ${{ steps.junie_summary.outputs.summary }}
-          branch: junie-issue-${{ steps.workflow-params.outputs.issue_id }}
+          branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
-      - name: Create Pull Request for resolve conflicts
-        if: steps.workflow-params.outputs.run_type == 'resolve_conflicts'
-        uses: peter-evans/create-pull-request@v5
-        with:
-         token: ${{ steps.workflow-params.outputs.app_token }}
-         commit-message: "chore(junie): resolve conflicts for ${{ steps.workflow-params.outputs.checkout_ref }}"
-         title: "[Junie]: resolve conflicts for ${{ steps.workflow-params.outputs.checkout_ref }}"
-         body: |
-           ## 📌 PR Details
-           ### 📊 Junie Summary
-           ${{ steps.junie_summary.outputs.summary }}
-         branch: junie-resolve-${{ steps.workflow-params.outputs.checkout_ref }}
-         base: ${{ steps.workflow-params.outputs.checkout_ref }}
-
-      - name: Commit changes to PR branch
-        if: steps.workflow-params.outputs.run_type == 'fix_all' || steps.workflow-params.outputs.run_type == 'fix_single'
+      - name: Commit changes to the same branch
+        if: steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
         run: |
-          git config --global user.name 'junie[bot]'
-          git config --global user.email 'junie[bot]@users.noreply.github.com'
           git add .
-          git commit -m "[${{ steps.workflow-params.outputs.issue_id }}]" -m "summary: ${{ steps.junie_summary.outputs.summary }}"
+          git commit -m "[${{ steps.workflow-params.outputs.issue_id }}] Improvement from Junie" -m "summary: ${{ steps.junie_summary.outputs.summary }}"
           git push origin HEAD:${{ steps.workflow-params.outputs.checkout_ref }}
