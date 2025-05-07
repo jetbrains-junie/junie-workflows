@@ -80,13 +80,9 @@ jobs:
 Junie helps you iterate on pull requests with smart suggestions:
 
 - Comments with `@jetbrains-junie` are picked up and processed.
-- If part of a **code review**, Junie waits until the review is submitted.
-- If it’s a **standalone comment** or on the **conversation tab**, Junie runs immediately.
-- If the PR was created by Junie or the author, fixes are committed to the same branch.
-- Otherwise, Junie creates a **new PR** with the changes.
-- After processing, Junie leaves a summary in a PR comment (and link to the new PR if applicable).
+- If part of a **code review**, Junie waits until the review is submitted and picks up all comments with the mention
+- If the PR was created by Junie or the author of comments with mentions, fixes are committed to the same branch, otherwise, Junie creates a **new PR** with the changes.
 - Parallel runs on the same PR branch are prevented.
-- Comments that have been processed are marked with the `:done:` emoji.
 
 > _Note: Advanced configuration options (like custom keywords or target branches) are coming soon._
 
