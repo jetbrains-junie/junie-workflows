@@ -18,10 +18,15 @@ on:
         description: "JSON string containing all workflow parameters"
         type: string
         required: true
+      runs-on:
+        description: "Which runner use to run junie"
+        type: string
+        default: "ubuntu-latest"
+        required: false
 
 jobs:
   run-junie:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
       pull-requests: write
@@ -36,9 +41,9 @@ jobs:
             const params = JSON.parse(core.getInput('params'));
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
-              idea_version: '2024.3.5',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/99.1-cloud-eap/ej-cloud-eap-243.99.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/spak-test-1/junie-runner-SNAPSHOT.jar'
+              idea_version: '2025.1',
+              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/spak-test-1/ej-251-SNAPSHOT.zip',
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/ej-manual/ej-cloud-runner-67.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
             Object.keys(finalParams).forEach((key) => {
@@ -49,6 +54,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.workflow-params.outputs.checkout_ref }}
+
+      - name: Init git configuration
+        run: |
+          git config --global user.name 'junie-eap[bot]'
+          git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
+
+      - name: Make all scripts in .devcontainer executable
+        if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
+        run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
 
       - name: Prepare container and run Junie
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
@@ -82,10 +96,10 @@ jobs:
               # Check if java is available in PATH
               if ! command -v java >/dev/null 2>&1; then
                 echo "Java is not available in PATH. Proceeding with installation..."
-                # Install OpenJDK 21 JRE
+                # Install OpenJDK 17 JRE
                 sudo apt-get -qq update >/dev/null
-                sudo apt-get -qq install -y openjdk-17-jre-headless >/dev/null
-                echo "OpenJDK 21 JRE installed successfully."
+                sudo apt-get -qq install -y openjdk-17-jre >/dev/null
+                echo "OpenJDK 17 JRE installed successfully."
               else
                 echo "Java is available in PATH. No need to install."
               fi
@@ -105,19 +119,25 @@ jobs:
 
       - name: Extracting .idea and ej-logs
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
-        run: |
-          pwd
-          docker ps
-          docker cp "$(docker ps -q)":/workspaces/idea-logs ./idea-logs
-          docker cp "$(docker ps -q)":/workspaces/.matterhorn ./.matterhorn
+        run: |          
+          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaceFolder // "/workspaces/stub"')
+
+          CONTAINER_ID=$(docker ps -q)
+          
+          echo "WORKSPACE=$WORKSPACE_FOLDER"
+          echo "CONTAINER=$CONTAINER_ID"
+          
+          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs" ./idea-logs || echo "No idea-logs"
+          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
+          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
-      - name: Prepare 21 Java for non-container run
+      - name: Prepare 17 Java for non-container run
         uses: actions/setup-java@v4
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         with:
           distribution: 'temurin' # Need to be synced with "Force setting..." command in the next step
-          java-version: '21'
+          java-version: '17'
 
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -136,8 +156,8 @@ jobs:
 
           # https://github.com/actions/setup-java/issues/701
           echo "Force setting java version for sudo subprocesses"
-          sudo update-alternatives --set java /usr/lib/jvm/temurin-21-jdk-amd64/bin/java
-          sudo update-alternatives --set javac /usr/lib/jvm/temurin-21-jdk-amd64/bin/javac
+          sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
+          sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
           sudo java --version
           
           echo "Running ej-runner"
@@ -190,8 +210,8 @@ jobs:
       #   run: |
       #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
-      - name: Create Pull Request for new issue
-        if: steps.workflow-params.outputs.run_type == 'new_issue'
+      - name: Make Pull Request for the changes
+        if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ steps.workflow-params.outputs.app_token }}
@@ -204,35 +224,17 @@ jobs:
             We’d love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/github).
                                                               
             - 🔗 **Issue:** #${{ steps.workflow-params.outputs.issue_id }}
-            - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}
-            
-            ### 📝 Original Issue Description  
-            ${{ steps.workflow-params.outputs.issue_body }}
+            - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}
+            - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}            
             
             ### 📊 Junie Summary
             ${{ steps.junie_summary.outputs.summary }}
-          branch: junie-issue-${{ steps.workflow-params.outputs.issue_id }}
+          branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
-      - name: Create Pull Request for resolve conflicts
-        if: steps.workflow-params.outputs.run_type == 'resolve_conflicts'
-        uses: peter-evans/create-pull-request@v5
-        with:
-         token: ${{ steps.workflow-params.outputs.app_token }}
-         commit-message: "chore(junie): resolve conflicts for ${{ steps.workflow-params.outputs.checkout_ref }}"
-         title: "[Junie]: resolve conflicts for ${{ steps.workflow-params.outputs.checkout_ref }}"
-         body: |
-           ## 📌 PR Details
-           ### 📊 Junie Summary
-           ${{ steps.junie_summary.outputs.summary }}
-         branch: junie-resolve-${{ steps.workflow-params.outputs.checkout_ref }}
-         base: ${{ steps.workflow-params.outputs.checkout_ref }}
-
-      - name: Commit changes to PR branch
-        if: steps.workflow-params.outputs.run_type == 'fix_all' || steps.workflow-params.outputs.run_type == 'fix_single'
+      - name: Commit changes to the same branch
+        if: steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
         run: |
-          git config --global user.name 'junie[bot]'
-          git config --global user.email 'junie[bot]@users.noreply.github.com'
           git add .
-          git commit -m "[${{ steps.workflow-params.outputs.issue_id }}]" -m "summary: ${{ steps.junie_summary.outputs.summary }}"
+          git commit -m "[${{ steps.workflow-params.outputs.issue_id }}] Improvement from Junie" -m "summary: ${{ steps.junie_summary.outputs.summary }}"
           git push origin HEAD:${{ steps.workflow-params.outputs.checkout_ref }}
