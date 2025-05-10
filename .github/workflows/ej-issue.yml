@@ -60,77 +60,77 @@ jobs:
           git config --global user.name 'junie-eap[bot]'
           git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
 
-      - name: Make all scripts in .devcontainer executable
-        if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
-        run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
+      # - name: Make all scripts in .devcontainer executable
+      #   if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
+      #   run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
 
-      - name: Prepare container and run Junie
-        if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
-        uses: devcontainers/ci@v0.3
-        timeout-minutes: 50
-        env:
-          PROJECT_STACK: ${{ steps.workflow-params.outputs.project_stack }}
-          ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
-          ISSUE_BODY: ${{ steps.workflow-params.outputs.issue_body }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
-          JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
-          MATTERHORN_DEBUG_LOG: true
-        with:
-          imageName: project-devcontainer
-          push: never
-          env: |          
-            PROJECT_STACK
-            ISSUE_TITLE
-            ISSUE_BODY
-            GITHUB_TOKEN
-            MATTERHORN_DEBUG_LOG
-            JUNIE_DOWNLOAD_URL
-          runCmd: |
-            echo "Downloading ej-runner"
-            wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
+      # - name: Prepare container and run Junie
+      #   if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
+      #   uses: devcontainers/ci@v0.3
+      #   timeout-minutes: 50
+      #   env:
+      #     PROJECT_STACK: ${{ steps.workflow-params.outputs.project_stack }}
+      #     ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
+      #     ISSUE_BODY: ${{ steps.workflow-params.outputs.issue_body }}
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
+      #     JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
+      #     MATTERHORN_DEBUG_LOG: true
+      #   with:
+      #     imageName: project-devcontainer
+      #     push: never
+      #     env: |          
+      #       PROJECT_STACK
+      #       ISSUE_TITLE
+      #       ISSUE_BODY
+      #       GITHUB_TOKEN
+      #       MATTERHORN_DEBUG_LOG
+      #       JUNIE_DOWNLOAD_URL
+      #     runCmd: |
+      #       echo "Downloading ej-runner"
+      #       wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
 
-            # Check if JAVA_HOME is set
-            if [ -z "$JAVA_HOME" ]; then
-              echo "JAVA_HOME is not set."
-              # Check if java is available in PATH
-              if ! command -v java >/dev/null 2>&1; then
-                echo "Java is not available in PATH. Proceeding with installation..."
-                # Install OpenJDK 17 JRE
-                sudo apt-get -qq update >/dev/null
-                sudo apt-get -qq install -y openjdk-17-jre >/dev/null
-                echo "OpenJDK 17 JRE installed successfully."
-              else
-                echo "Java is available in PATH. No need to install."
-              fi
-            else
-              echo "JAVA_HOME is set to '$JAVA_HOME'. No need to install."
-            fi
+      #       # Check if JAVA_HOME is set
+      #       if [ -z "$JAVA_HOME" ]; then
+      #         echo "JAVA_HOME is not set."
+      #         # Check if java is available in PATH
+      #         if ! command -v java >/dev/null 2>&1; then
+      #           echo "Java is not available in PATH. Proceeding with installation..."
+      #           # Install OpenJDK 17 JRE
+      #           sudo apt-get -qq update >/dev/null
+      #           sudo apt-get -qq install -y openjdk-17-jre >/dev/null
+      #           echo "OpenJDK 17 JRE installed successfully."
+      #         else
+      #           echo "Java is available in PATH. No need to install."
+      #         fi
+      #       else
+      #         echo "JAVA_HOME is set to '$JAVA_HOME'. No need to install."
+      #       fi
 
-            echo "Running ej-runner"
-            if [ -z "$JAVA_HOME" ]; then
-              java -version
-              java -jar junie-runner.jar
-            else
-              "$JAVA_HOME/bin/java" -version
-              "$JAVA_HOME/bin/java" -jar junie-runner.jar
-            fi
+      #       echo "Running ej-runner"
+      #       if [ -z "$JAVA_HOME" ]; then
+      #         java -version
+      #         java -jar junie-runner.jar
+      #       else
+      #         "$JAVA_HOME/bin/java" -version
+      #         "$JAVA_HOME/bin/java" -jar junie-runner.jar
+      #       fi
             
 
-      - name: Extracting .idea and ej-logs
-        if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
-        run: |          
-          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaceFolder // "/workspaces/stub"')
+      # - name: Extracting .idea and ej-logs
+      #   if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
+      #   run: |          
+      #     WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaceFolder // "/workspaces/stub"')
 
-          CONTAINER_ID=$(docker ps -q)
+      #     CONTAINER_ID=$(docker ps -q)
           
-          echo "WORKSPACE=$WORKSPACE_FOLDER"
-          echo "CONTAINER=$CONTAINER_ID"
+      #     echo "WORKSPACE=$WORKSPACE_FOLDER"
+      #     echo "CONTAINER=$CONTAINER_ID"
           
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs" ./idea-logs || echo "No idea-logs"
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
+      #     docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs" ./idea-logs || echo "No idea-logs"
+      #     docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
           
-          sudo chown -R runner:runner ${{ github.workspace }} || true
+      #     sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Prepare 17 Java for non-container run
         uses: actions/setup-java@v4
