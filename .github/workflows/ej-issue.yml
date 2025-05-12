@@ -232,9 +232,13 @@ jobs:
           branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
-      - name: Commit changes to the same branch
+      - uses: EndBug/add-and-commit@v9
+        name: Commit changes to the same branch
         if: steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
-        run: |
-          git add .
-          git commit -m "[${{ steps.workflow-params.outputs.issue_id }}] Improvement from Junie" -m "summary: ${{ steps.junie_summary.outputs.summary }}"
-          git push origin HEAD:${{ steps.workflow-params.outputs.checkout_ref }}
+        with:
+          author_name: junie-eap[bot]
+          author_email: junie-eap[bot]@users.noreply.github.com
+          message: |
+            [issue-${{ steps.workflow-params.outputs.issue_id }}] Improvement from Junie
+            
+            ${{ steps.junie_summary.outputs.summary }}
