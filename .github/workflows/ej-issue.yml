@@ -117,7 +117,7 @@ jobs:
             fi
             
 
-      - name: Extracting .idea and ej-logs
+      - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |          
           WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaceFolder // "/workspaces/stub"')
@@ -161,8 +161,11 @@ jobs:
           sudo java --version
           
           echo "Running ej-runner"
-          sudo -E java -jar junie-runner.jar
-          
+          sudo -E java -jar junie-runner.jar                 
+
+      - name: Extracting .idea and ej-logs for non-container run
+        if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
+        run: |
           echo "Copying logs to target dir..."
           sudo cp -r ../idea-logs .
           sudo cp -r ../.matterhorn .
