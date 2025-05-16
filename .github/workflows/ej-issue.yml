@@ -42,7 +42,7 @@ jobs:
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
               idea_version: '2025.1',
-              junie_plugin_download_url: 'https://github.com/melotria/artifacts/releases/download/test-2/ej-0.31-SNAPSHOT.zip',
+              junie_plugin_download_url: 'https://github.com/melotria/artifacts/releases/download/test-4/ej-0.31-SNAPSHOT.zip',
               junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/ej-manual/ej-cloud-runner-67.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
@@ -183,7 +183,7 @@ jobs:
           echo "$summary" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           
-          name=$(jq -r '.content.name' .matterhorn/*issue_md.*swe_patch*)
+          name=$(jq -r '.content.title' .matterhorn/*issue_md.*swe_patch*)
           echo "name is $name"
           name=${name:-"Improvement from Junie"}
           echo "name=$name" >> "$GITHUB_OUTPUT" 
@@ -229,7 +229,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ steps.workflow-params.outputs.app_token }}
-          commit-message: "chore(junie): ${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
+          commit-message: "${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
           title: "[Junie]: ${{ steps.junie_summary.outputs.name }}"
           body: |
             ## 📌 Hey! This PR was made for you with Junie, the coding agent by JetBrains **Early Access Preview**
