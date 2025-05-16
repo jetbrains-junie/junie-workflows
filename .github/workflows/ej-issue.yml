@@ -42,7 +42,7 @@ jobs:
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
               idea_version: '2025.1',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/114.1-cloud-eap/ej-cloud-eap-251.114.1.zip',
+              junie_plugin_download_url: 'https://github.com/melotria/artifacts/releases/download/test-2/ej-0.31-SNAPSHOT.zip',
               junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/ej-manual/ej-cloud-runner-67.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
@@ -177,10 +177,21 @@ jobs:
         id: junie_summary
         continue-on-error: true
         run: |
+          summary=$(jq -r '.content.output' .matterhorn/*issue_md.*swe_patch*)
+          echo "summary is $summary"
           echo "summary<<EOF" >> $GITHUB_OUTPUT
-          echo "$(cat .matterhorn/*issue_md.*swe_patch* | jq -r '.content.output')" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT          
-          echo "output is $GITHUB_OUTPUT"
+          echo "$summary" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          name=$(jq -r '.content.name' .matterhorn/*issue_md.*swe_patch*)
+          echo "name is $name"
+          name=${name:-"Improvement from Junie"}
+          echo "name=$name" >> "$GITHUB_OUTPUT" 
+
+      - name: Print junie run statistics
+        continue-on-error: true
+        run: |
+          jq -c -s '{cost:(map(.statistics.cost)|add)}' .matterhorn/issue_md/step_*.swe_next_step_idea
 
       - name: Archive .matterhorn
         if: always()
@@ -218,8 +229,8 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ steps.workflow-params.outputs.app_token }}
-          commit-message: "chore(junie): ${{ steps.workflow-params.outputs.issue_title }} \n changes from the task: #${{ steps.workflow-params.outputs.issue_id }}"
-          title: "[Junie]: ${{ steps.workflow-params.outputs.issue_title }}"
+          commit-message: "chore(junie): ${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
+          title: "[Junie]: ${{ steps.junie_summary.outputs.name }}"
           body: |
             ## 📌 Hey! This PR was made for you with Junie, the coding agent by JetBrains **Early Access Preview**
             
@@ -242,6 +253,6 @@ jobs:
           author_name: junie-eap[bot]
           author_email: junie-eap[bot]@users.noreply.github.com
           message: |
-            [issue-${{ steps.workflow-params.outputs.issue_id }}] Improvement from Junie
+            [issue-${{ steps.workflow-params.outputs.issue_id }}] ${{ steps.junie_summary.outputs.name }}
             
             ${{ steps.junie_summary.outputs.summary }}
