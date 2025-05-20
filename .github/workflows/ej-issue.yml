@@ -42,7 +42,7 @@ jobs:
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
               idea_version: '2025.1',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/134.1-cloud-eap/ej-cloud-eap-251.134.1.zip',
+              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/141.1-cloud-eap/ej-cloud-eap-251.141.1.zip',
               junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/103.1/junie-runner-103.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
@@ -208,6 +208,7 @@ jobs:
           sudo rm -rf .matterhorn
           sudo rm -rf .output.txt
           sudo rm -rf junie-runner.jar
+          sudo rm -rf solution.patch
 
           if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
             echo "Restoring tracked '.idea' directory"
@@ -245,6 +246,7 @@ jobs:
             ${{ steps.junie_summary.outputs.summary }}
           branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
+          labels: junie
 
       - uses: EndBug/add-and-commit@v9
         name: Commit changes to the same branch
