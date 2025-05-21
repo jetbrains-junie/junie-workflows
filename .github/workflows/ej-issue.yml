@@ -46,8 +46,8 @@ jobs:
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
               idea_version: '2025.1',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/147.1-cloud-eap/ej-cloud-eap-251.147.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/103.1/junie-runner-103.1.jar'
+              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/149.1-cloud-eap/ej-cloud-eap-251.149.1.zip',
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/120.1/junie-runner-120.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
             Object.keys(finalParams).forEach((key) => {
@@ -197,7 +197,7 @@ jobs:
         run: |
           jq -c -s '{cost:(map(.statistics.cost)|add)}' .matterhorn/issue_md/step_*.swe_next_step_idea
 
-      - name: Archive .matterhorn
+      - name: Upload matterhorn logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -206,13 +206,42 @@ jobs:
           include-hidden-files: 'true'
           retention-days: 3
 
+      - name: Find and upload attachment
+        if: always()
+        run: |
+          # Find the first attachment
+          file=$(find .matterhorn/out/attachments -type f | head -n 1)
+          if [ -n "$file" ]; then
+            echo "Found: $file"
+            file_name=$(basename "$file")
+            file_size=$(stat -c %s "$file")
+          
+            # Create the artifact via GitHub API
+            RESPONSE=$(curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d '{"name":"'$file_name'", "size_in_bytes":'$file_size'}' \
+              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts")
+          
+            # Extract artifact ID from the response
+            ARTIFACT_ID=$(echo "$RESPONSE" | jq -r '.id')
+          
+            # Upload the file to the created artifact
+            curl -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$file" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${ARTIFACT_ID}/contents?name=$file_name"
+          
+            echo "Artifact created and file uploaded: $file_name"
+          else
+            echo "No attachment found"
+          fi
+
       - name: Restore or remove .idea directory
         run: |
           sudo rm -rf idea-logs
           sudo rm -rf .matterhorn
           sudo rm -rf .output.txt
           sudo rm -rf junie-runner.jar
-          sudo rm -rf solution.patch
 
           if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
             echo "Restoring tracked '.idea' directory"
