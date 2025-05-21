@@ -10,6 +10,10 @@ on:
         description: "temporary params, not using in workflow"
         type: boolean
         required: false
+      fix_checks:
+        description: "temporary params, not using in workflow"
+        type: boolean
+        required: false
       skip_workflow_file_validation:
         description: "temporary params, not using in workflow"
         type: boolean
