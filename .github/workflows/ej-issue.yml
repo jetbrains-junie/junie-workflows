@@ -68,7 +68,12 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
           find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
+          echo "Running PWD"
+          pwd
+          echo "Running ls -al"
           ls -al
+          echo "Running ls -al .."
+          ls -al ..
 
       - name: Just try to do smth
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
