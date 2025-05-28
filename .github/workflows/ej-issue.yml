@@ -68,6 +68,31 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
 
+      - name: Just try to do smth
+        if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
+        uses: devcontainers/ci@v0.3
+        timeout-minutes: 50
+        env:
+          PROJECT_STACK: ${{ steps.workflow-params.outputs.project_stack }}
+          ISSUE_TITLE: ${{ steps.workflow-params.outputs.issue_title }}
+          ISSUE_BODY: ${{ steps.workflow-params.outputs.issue_body }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
+          JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
+          MATTERHORN_DEBUG_LOG: true
+        with:
+          imageName: project-devcontainer
+          push: never
+          env: |
+            PROJECT_STACK
+            ISSUE_TITLE
+            ISSUE_BODY
+            GITHUB_TOKEN
+            MATTERHORN_DEBUG_LOG
+            JUNIE_DOWNLOAD_URL
+          runCmd: |
+            ls -al
+
       - name: Prepare container and run Junie
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         uses: devcontainers/ci@v0.3
