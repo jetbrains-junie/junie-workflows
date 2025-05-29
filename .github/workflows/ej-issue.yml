@@ -46,8 +46,8 @@ jobs:
             // for now we always use this default params for idea, junie_plugin and junie_runner versions
             const defaultParams = {
               idea_version: '2025.1',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/160.1-cloud-eap/ej-cloud-eap-251.160.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/124.1/junie-runner-124.1.jar'
+              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/164.1-cloud-eap/ej-cloud-eap-251.164.1.zip',
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/142.1/junie-runner-142.1.jar'
             }
             const finalParams = { ...defaultParams, ...params };
             Object.keys(finalParams).forEach((key) => {
@@ -80,6 +80,7 @@ jobs:
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
+          MULTI_RUNS: false
         with:
           imageName: project-devcontainer
           push: never
@@ -90,6 +91,7 @@ jobs:
             GITHUB_TOKEN
             MATTERHORN_DEBUG_LOG
             JUNIE_DOWNLOAD_URL
+            MULTI_RUNS
           runCmd: |
             echo "Downloading ej-runner"
             wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
@@ -130,9 +132,9 @@ jobs:
           
           echo "WORKSPACE=$WORKSPACE_FOLDER"
           echo "CONTAINER=$CONTAINER_ID"
-          
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs" ./idea-logs || echo "No idea-logs"
+
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
+          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs/log/idea.log" ./.matterhorn/idea.log || echo "No idea-logs"          
           
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
@@ -154,6 +156,7 @@ jobs:
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
+          MULTI_RUNS: false
         run: |
           echo "Downloading ej-runner"
           sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
@@ -171,9 +174,8 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         run: |
           echo "Copying logs to target dir..."
-          sudo cp -r ../idea-logs .
           sudo cp -r ../.matterhorn .
-          sudo chown -R runner:runner ./idea-logs
+          sudo cp -r ../idea-logs/log/idea.log .matterhorn/idea.log
           sudo chown -R runner:runner ./.matterhorn
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
@@ -192,12 +194,26 @@ jobs:
           name=${name:-"Improvement from Junie"}
           echo "name=$name" >> "$GITHUB_OUTPUT" 
 
-      - name: Print junie run statistics
-        continue-on-error: true
-        run: |
-          jq -c -s '{cost:(map(.statistics.cost)|add)}' .matterhorn/issue_md/step_*.swe_next_step_idea
+      - name: Archive output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: output
+          path: |
+            .matterhorn/out/
+            !.matterhorn/out/attachments/**/*
+          retention-days: 7
 
-      - name: Archive .matterhorn
+      - name: Archive attachments
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: ignore
+          name: attachments
+          path: .matterhorn/attachments
+          retention-days: 7
+        
+      - name: Archive matterhorn directory
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -208,7 +224,6 @@ jobs:
 
       - name: Restore or remove .idea directory
         run: |
-          sudo rm -rf idea-logs
           sudo rm -rf .matterhorn
           sudo rm -rf .output.txt
           sudo rm -rf junie-runner.jar
