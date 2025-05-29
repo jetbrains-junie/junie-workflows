@@ -210,7 +210,7 @@ jobs:
         with:
           if-no-files-found: ignore
           name: attachments
-          path: .matterhorn/attachments
+          path: .matterhorn/out/attachments
           retention-days: 7
         
       - name: Archive matterhorn directory
