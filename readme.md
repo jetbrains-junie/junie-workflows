@@ -21,8 +21,8 @@ Once installed, Junie will automatically:
 - Create a Pull Request with the required workflow file (`.github/workflows/ej-issue.yml`)
 - Add a `devcontainer.json` file to your repository to support containerized environments
 
-You can review and adjust the `devcontainer.json` file if needed, but **no manual configuration is required** to get
-started.
+Junie will operate in the environment defined by your `devcontainer.json`, so this file must describe an environment where the project can be built and tests can be run successfully.
+We provide a default devcontainer, but it may not suit your specific needs; you may need to adjust it.  For more information about devcontainers, see: https://containers.dev/overview.
 
 > Junie is currently in closed Early Access.  
 > To join, please visit our [Discord](https://jb.gg/junie/github) or ask to be added to the whitelist.
