@@ -80,6 +80,7 @@ jobs:
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
+          MULTI_RUNS: false
         with:
           imageName: project-devcontainer
           push: never
@@ -90,6 +91,7 @@ jobs:
             GITHUB_TOKEN
             MATTERHORN_DEBUG_LOG
             JUNIE_DOWNLOAD_URL
+            MULTI_RUNS
           runCmd: |
             echo "Downloading ej-runner"
             wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
@@ -154,6 +156,7 @@ jobs:
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
+          MULTI_RUNS: false
         run: |
           echo "Downloading ej-runner"
           sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
