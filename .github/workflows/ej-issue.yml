@@ -79,6 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
+          MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: true
         with:
           imageName: project-devcontainer
@@ -153,6 +154,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
+          MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: true
         run: |
           echo "Downloading ej-runner"
