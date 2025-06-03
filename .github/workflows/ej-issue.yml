@@ -47,7 +47,7 @@ jobs:
             const defaultParams = {
               idea_version: '2025.1',
               junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/166.1-cloud-eap/ej-cloud-eap-251.166.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/142.1/junie-runner-142.1.jar'
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/153.1/junie-runner-153.1.jar'
             }
             const finalParams = { ...defaultParams, ...params, project_stack: 'jvm'  };
             Object.keys(finalParams).forEach((key) => {
