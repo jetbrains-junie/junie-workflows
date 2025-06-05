@@ -82,7 +82,6 @@ jobs:
           MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: false
         with:
-          imageName: project-devcontainer-2
           push: never
           env: |          
             PROJECT_STACK
