@@ -79,6 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
+          MATTERHORN_CACHES: "."
           MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: false
         with:
@@ -96,7 +97,7 @@ jobs:
             declare -x
             echo
             echo "------"
-            echo "workflow-params: ${{ steps.workflow-params }}
+            echo "workflow-params: ${{ steps.workflow-params }} "
             echo "------"
             
             wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
@@ -137,6 +138,7 @@ jobs:
           
           echo "WORKSPACE=$WORKSPACE_FOLDER"
           echo "CONTAINER=$CONTAINER_ID"
+          ls -al
 
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs/log/idea.log" ./.matterhorn/idea.log || echo "No idea-logs"          
