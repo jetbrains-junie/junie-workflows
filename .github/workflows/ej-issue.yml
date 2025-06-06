@@ -107,6 +107,7 @@ jobs:
             OPENAI_API_KEY
           runCmd: |
             echo "Downloading ej-runner"
+            declare -x
             wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
 
             # Check if JAVA_HOME is set
