@@ -54,15 +54,6 @@ jobs:
                 core.setOutput(key, finalParams[key]);
             });         
 
-      - name: Install jq
-        run : |
-          sudo apt update
-          sudo apt install -y jq
-      - name: Display parameters this workflow was called with
-        shell: bash
-        run:
-          printf '|Parameter|Value|\n|------|------|\n' >> $GITHUB_STEP_SUMMARY &&
-          jq -r 'to_entries | map("|\(.key)|\(.value)|") | join("\n") | @text' <<< '${{tojson(inputs)}}' | sed 's/\\n/\n/g' >> $GITHUB_STEP_SUMMARY
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -88,11 +79,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
-          MATTERHORN_CACHES: "."
           MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: false
-          ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY: ${{env.OPENAI_API_KEY}}
         with:
           push: never
           env: |          
@@ -103,11 +91,8 @@ jobs:
             MATTERHORN_DEBUG_LOG
             JUNIE_DOWNLOAD_URL
             MULTI_RUNS
-            ANTHROPIC_API_KEY
-            OPENAI_API_KEY
           runCmd: |
             echo "Downloading ej-runner"
-            declare -x
             wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
 
             # Check if JAVA_HOME is set
@@ -140,15 +125,17 @@ jobs:
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |          
-          pwd
-          ls -al .
-          ls -al ..
+          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaces.workspaceFolder // "/workspaces/stub"')
 
-          sudo cp -r ../.matterhorn .
-          sudo cp -r ../idea-logs/log/idea.log .matterhorn/idea.log
-          sudo chown -R runner:runner ./.matterhorn
-          sudo chown -R runner:runner ${{ github.workspace }} || true
+          CONTAINER_ID=$(docker container ls --filter "label=dev.containers.id" --quiet | head -n 1)
           
+          echo "WORKSPACE=$WORKSPACE_FOLDER"
+          echo "CONTAINER=$CONTAINER_ID"
+
+          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
+          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs/log/idea.log" ./.matterhorn/idea.log || echo "No idea-logs"          
+          
+          sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Prepare 17 Java for non-container run
         uses: actions/setup-java@v4
