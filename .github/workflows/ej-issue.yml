@@ -91,6 +91,8 @@ jobs:
           MATTERHORN_CACHES: "."
           MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: false
+          ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{env.OPENAI_API_KEY}}
         with:
           push: never
           env: |          
@@ -101,14 +103,10 @@ jobs:
             MATTERHORN_DEBUG_LOG
             JUNIE_DOWNLOAD_URL
             MULTI_RUNS
+            ANTHROPIC_API_KEY
+            OPENAI_API_KEY
           runCmd: |
             echo "Downloading ej-runner"
-            declare -x
-            echo
-            echo "------"
-            echo "workflow-params: ${{ steps.workflow-params }} "
-            echo "------"
-            
             wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
 
             # Check if JAVA_HOME is set
