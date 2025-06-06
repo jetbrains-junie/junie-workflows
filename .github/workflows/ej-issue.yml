@@ -54,6 +54,15 @@ jobs:
                 core.setOutput(key, finalParams[key]);
             });         
 
+      - name: Install jq
+        run : |
+          apt update
+          apt install -y jq
+      - name: Display parameters this workflow was called with
+        shell: bash
+        run:
+          printf '|Parameter|Value|\n|------|------|\n' >> $GITHUB_STEP_SUMMARY &&
+          jq -r 'to_entries | map("|\(.key)|\(.value)|") | join("\n") | @text' <<< '${{tojson(inputs)}}' | sed 's/\\n/\n/g' >> $GITHUB_STEP_SUMMARY
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -138,7 +147,9 @@ jobs:
           
           echo "WORKSPACE=$WORKSPACE_FOLDER"
           echo "CONTAINER=$CONTAINER_ID"
-          ls -al
+          pwd
+          ls -al .
+          ls -al ..
 
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs/log/idea.log" ./.matterhorn/idea.log || echo "No idea-logs"          
