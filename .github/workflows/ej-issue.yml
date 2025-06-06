@@ -88,7 +88,6 @@ jobs:
           MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: true
         with:
-          imageName: project-devcontainer
           push: never
           env: |          
             PROJECT_STACK
@@ -140,9 +139,9 @@ jobs:
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |          
-          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaceFolder // "/workspaces/stub"')
+          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaces.workspaceFolder // "/workspaces/stub"')
 
-          CONTAINER_ID=$(docker ps -q)
+          CONTAINER_ID=$(docker container ls --filter "label=dev.containers.id" --quiet | head -n 1)
 
           echo "WORKSPACE=$WORKSPACE_FOLDER"
           echo "CONTAINER=$CONTAINER_ID"
