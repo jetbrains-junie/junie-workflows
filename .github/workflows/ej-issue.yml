@@ -56,8 +56,8 @@ jobs:
 
       - name: Install jq
         run : |
-          apt update
-          apt install -y jq
+          sudo apt update
+          sudo apt install -y jq
       - name: Display parameters this workflow was called with
         shell: bash
         run:
