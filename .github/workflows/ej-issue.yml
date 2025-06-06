@@ -93,6 +93,12 @@ jobs:
             MULTI_RUNS
           runCmd: |
             echo "Downloading ej-runner"
+            declare -x
+            echo
+            echo "------"
+            echo "workflow-params: ${{ steps.workflow-params }}
+            echo "------"
+            
             wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
 
             # Check if JAVA_HOME is set
