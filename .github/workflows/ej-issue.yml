@@ -141,20 +141,15 @@ jobs:
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |          
-          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaceFolder // "/workspaces/stub"')
-
-          CONTAINER_ID=$(docker ps -q)
-          
-          echo "WORKSPACE=$WORKSPACE_FOLDER"
-          echo "CONTAINER=$CONTAINER_ID"
           pwd
           ls -al .
           ls -al ..
 
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../idea-logs/log/idea.log" ./.matterhorn/idea.log || echo "No idea-logs"          
-          
+          sudo cp -r ../.matterhorn .
+          sudo cp -r ../idea-logs/log/idea.log .matterhorn/idea.log
+          sudo chown -R runner:runner ./.matterhorn
           sudo chown -R runner:runner ${{ github.workspace }} || true
+          
 
       - name: Prepare 17 Java for non-container run
         uses: actions/setup-java@v4
