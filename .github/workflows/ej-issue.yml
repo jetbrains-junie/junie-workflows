@@ -152,7 +152,7 @@ jobs:
           echo "-----"
           docker container ls --format "json"
           echo "-----"
-          CONTAINER_ID=$(docker container ls --filter "label=dev.containers.id" --quiet | head -n 1)
+          CONTAINER_ID=$(docker container ls --filter "label=devcontainer.config_file" --quiet | head -n 1)
           echo "CONTAINER=$CONTAINER_ID"
 
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
