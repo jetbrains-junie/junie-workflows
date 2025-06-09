@@ -145,7 +145,7 @@ jobs:
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |          
-          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspaces.workspaceFolder // "/workspaces/stub"')
+          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspace.workspaceFolder // "/workspaces/stub"')
 
           CONTAINER_ID=$(docker container ls --filter "label=dev.containers.id" --quiet | head -n 1)
 
