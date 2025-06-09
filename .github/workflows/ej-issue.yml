@@ -144,12 +144,14 @@ jobs:
 
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
-        run: |          
+        run: |
+          devcontainer read-configuration --workspace-folder .
           WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspace.workspaceFolder // "/workspaces/stub"')
-
-          CONTAINER_ID=$(docker container ls --filter "label=dev.containers.id" --quiet | head -n 1)
-
           echo "WORKSPACE=$WORKSPACE_FOLDER"
+          docker container ls
+          docker container ls --filter "label=dev.containers.id"
+          docker container ls --filter "label=dev.containers.id" --quiet | head -n 1
+          CONTAINER_ID=$(docker container ls --filter "label=dev.containers.id" --quiet | head -n 1)
           echo "CONTAINER=$CONTAINER_ID"
 
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/../.matterhorn" ./.matterhorn || echo "No .matterhorn"
