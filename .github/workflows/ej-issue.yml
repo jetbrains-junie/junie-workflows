@@ -137,7 +137,8 @@ jobs:
             
             ls -al .
             ls -al ..
-            git
+            git config --global --add safe.directory "/workspace/chat_app-springboot"
+            sudo -E git config --global --add safe.directory "/workspace/chat_app-springboot"
           
 
 
