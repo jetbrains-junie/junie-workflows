@@ -86,7 +86,7 @@ jobs:
           IDEA_VERSION: ${{ steps.workflow-params.outputs.idea_version }}
           JUNIE_DOWNLOAD_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MATTERHORN_DEBUG_LOG: true
-          MULTI_RUNS: true
+          MULTI_RUNS: false
         with:
           push: never
           env: |          
@@ -149,6 +149,7 @@ jobs:
           WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspace.workspaceFolder // "/workspaces/stub"')
           echo "WORKSPACE=$WORKSPACE_FOLDER"
           docker container ls
+          docker container ls --format "{{ . }}"
           docker container ls --filter "label=dev.containers.id"
           docker container ls --filter "label=dev.containers.id" --quiet | head -n 1
           CONTAINER_ID=$(docker container ls --filter "label=dev.containers.id" --quiet | head -n 1)
