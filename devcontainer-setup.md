@@ -212,7 +212,9 @@ services:
 
 **Sample repository**:
 
-https://github.com/paksv/Ecommerce_Store
+https://github.com/jetbrains-junie/workout-logger-demo
+https://github.com/jetbrains-junie/workout-logger-demo/blob/main/.devcontainer/devcontainer.json
+https://github.com/jetbrains-junie/workout-logger-demo/blob/main/.devcontainer/docker-compose.yaml
 
 ---
 
