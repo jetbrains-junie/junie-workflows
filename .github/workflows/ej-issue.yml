@@ -51,7 +51,7 @@ jobs:
             // for now we always use this default params for idea and junie versions
             const defaultParams = {
               ide_major_version: '2025.1',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/26.1/junie-cloud-eap-251.26.1-linux-aarch64.zip'
+              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/26.1/junie-cloud-eap-251.26.1-linux-amd64.zip'
             }
             const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
 
