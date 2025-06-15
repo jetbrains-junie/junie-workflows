@@ -48,11 +48,11 @@ jobs:
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
 
-            // for now we always use this default params for idea, junie_plugin and junie_runner versions
+            // for now we always use this default params for idea and junie versions
             const defaultParams = {
-              ide_major_version: '2025.1',
-              junie_plugin_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/174.1-cloud-eap/ej-cloud-eap-251.174.1.zip',
-              junie_runner_download_url: 'https://github.com/jetbrains-junie/artifacts/releases/download/223.1/junie-runner-223.1.jar'
+              junie_ide_version: '251',
+              junie_version: '175.1',
+              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/175.1/junie.sh'
             }
             const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
 
@@ -70,12 +70,6 @@ jobs:
           git config --global user.name 'junie-eap[bot]'
           git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
 
-      - name: Make Junie working directory
-        if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
-        run: |
-          mkdir ../junie
-          echo "Junie working directory: $(realpath ../junie)" 
-
       - name: Make all scripts in .devcontainer executable
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
@@ -86,21 +80,17 @@ jobs:
         timeout-minutes: 50
         env:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
-          EJ_IDE_MAJOR_VERSION: ${{ steps.workflow-params.outputs.ide_major_version }}
           EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EJ_JUNIE_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MULTI_RUNS: true
         with:
           push: never
           env: |
             EJ_IDE_NAME
-            EJ_IDE_MAJOR_VERSION
             EJ_TASK_NAME
             EJ_TASK_TEXT
             EJ_AUTH_GITHUB_TOKEN            
-            EJ_JUNIE_URL
             MULTI_RUNS
           runCmd: |
             mkdir ./.junie-work
@@ -112,25 +102,9 @@ jobs:
             export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
             export EJ_PROJECT=$(realpath ".")
             
+            cd .junie-work
             echo "Downloading ej-runner"
-            wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
-
-            # Check if JAVA_HOME is set
-            if [ -z "$JAVA_HOME" ]; then
-              echo "JAVA_HOME is not set."
-              # Check if java is available in PATH
-              if ! command -v java >/dev/null 2>&1; then
-                echo "Java is not available in PATH. Proceeding with installation..."
-                # Install OpenJDK 17 JRE
-                sudo apt-get -qq update >/dev/null
-                sudo apt-get -qq install -y openjdk-17-jre >/dev/null
-                echo "OpenJDK 17 JRE installed successfully."
-              else
-                echo "Java is available in PATH. No need to install."
-              fi
-            else
-              echo "JAVA_HOME is set to '$JAVA_HOME'. No need to install."
-            fi
+            wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
 
             echo "Running ej-runner"
             
@@ -141,15 +115,10 @@ jobs:
             echo "Current time (ms): $current_time"
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
-          
-            if [ -z "$JAVA_HOME" ]; then
-              java -version
-              java -jar junie-runner.jar
-            else
-              "$JAVA_HOME/bin/java" -version
-              "$JAVA_HOME/bin/java" -jar junie-runner.jar
-            fi
-
+            
+            export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
+            export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+            chmod +x ./junie.sh && ./junie.sh
 
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
@@ -166,38 +135,29 @@ jobs:
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
-      - name: Prepare 17 Java for non-container run
-        uses: actions/setup-java@v4
-        if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
-        with:
-          distribution: 'temurin' # Need to be synced with "Force setting..." command in the next step
-          java-version: '17'
-
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         timeout-minutes: 50
         env:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
-          EJ_IDE_MAJOR_VERSION: ${{ steps.workflow-params.outputs.ide_major_version }}
           EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EJ_JUNIE_URL: ${{ steps.workflow-params.outputs.junie_plugin_download_url }}
           MULTI_RUNS: true
         run: |
-          echo "Downloading ej-runner"
-          sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner_download_url }}" -O junie-runner.jar
-          export EJ_FOLDER_WORK=$(realpath "../junie")
-          export EJ_FOLDER_IDE_CACHES=$(realpath "../junie")
-          export EJ_FOLDER_IDE_CONFIG=$(realpath "../junie")
-          export EJ_FOLDER_AGENT_CACHES=$(realpath "../junie")
+          mkdir ./.junie-work
+          echo "Junie working directory: $(realpath ./.junie-work)"
+ 
+          export EJ_FOLDER_WORK=$(realpath "./.junie-work")
+          export EJ_FOLDER_IDE_CACHES=$(realpath "./.junie-work")
+          export EJ_FOLDER_IDE_CONFIG=$(realpath "./.junie-work")
+          export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
           export EJ_PROJECT=$(realpath ".")
 
-          # https://github.com/actions/setup-java/issues/701
-          echo "Force setting java version for sudo subprocesses"
-          sudo update-alternatives --set java /usr/lib/jvm/temurin-17-jdk-amd64/bin/java
-          sudo update-alternatives --set javac /usr/lib/jvm/temurin-17-jdk-amd64/bin/javac
-          sudo java --version
+          cd .junie-work
+          
+          echo "Downloading ej-runner"
+          sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
 
           echo "Running ej-runner"
           # Calculate time limit: 60 minutes minus time passed since workflow start
@@ -208,17 +168,20 @@ jobs:
           echo "Time passed since workflow start (ms): $time_passed"
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
 
-          sudo -E java -jar junie-runner.jar
+          export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
+          export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+
+          sudo -E chmod +x ./junie.sh && ./junie.sh
 
       - name: Extracting .idea and ej-logs for non-container run
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         run: |
           echo "Copying logs to target dir..."
-          sudo chown -R runner:runner ../junie
+          sudo chown -R runner:runner ./.junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
-          cp -r ../junie/.matterhorn .junie-upload/.matterhorn
-          cp -r ../junie/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r ./.junie-work/.matterhorn .junie-upload/.matterhorn
+          cp -r ./.junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
 
       - name: Save junie result summary
         id: junie_summary
@@ -268,7 +231,6 @@ jobs:
           sudo rm -rf .junie-work
           sudo rm -rf .junie-upload
           sudo rm -rf .output.txt
-          sudo rm -rf junie-runner.jar
           sudo rm -rf solution.patch
 
           if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
