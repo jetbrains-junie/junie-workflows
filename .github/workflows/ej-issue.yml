@@ -70,12 +70,6 @@ jobs:
           git config --global user.name 'junie-eap[bot]'
           git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
 
-      - name: Make Junie working directory
-        if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
-        run: |
-          mkdir ../junie
-          echo "Junie working directory: $(realpath ../junie)" 
-
       - name: Make all scripts in .devcontainer executable
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
@@ -108,6 +102,7 @@ jobs:
             export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
             export EJ_PROJECT=$(realpath ".")
             
+            cd .junie-work
             echo "Downloading ej-runner"
             wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
 
@@ -150,14 +145,19 @@ jobs:
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_RUNS: true
         run: |
+          mkdir ./.junie-work
+          echo "Junie working directory: $(realpath ./.junie-work)"
+ 
+          export EJ_FOLDER_WORK=$(realpath "./.junie-work")
+          export EJ_FOLDER_IDE_CACHES=$(realpath "./.junie-work")
+          export EJ_FOLDER_IDE_CONFIG=$(realpath "./.junie-work")
+          export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
+          export EJ_PROJECT=$(realpath ".")
+
+          cd .junie-work
+          
           echo "Downloading ej-runner"
           sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
-          
-          export EJ_FOLDER_WORK=$(realpath "../junie")
-          export EJ_FOLDER_IDE_CACHES=$(realpath "../junie")
-          export EJ_FOLDER_IDE_CONFIG=$(realpath "../junie")
-          export EJ_FOLDER_AGENT_CACHES=$(realpath "../junie")
-          export EJ_PROJECT=$(realpath ".")
 
           echo "Running ej-runner"
           # Calculate time limit: 60 minutes minus time passed since workflow start
@@ -177,11 +177,11 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         run: |
           echo "Copying logs to target dir..."
-          sudo chown -R runner:runner ../junie
+          sudo chown -R runner:runner ./junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
-          cp -r ../junie/.matterhorn .junie-upload/.matterhorn
-          cp -r ../junie/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r ./junie-work/.matterhorn .junie-upload/.matterhorn
+          cp -r ./junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
 
       - name: Save junie result summary
         id: junie_summary
@@ -231,7 +231,6 @@ jobs:
           sudo rm -rf .junie-work
           sudo rm -rf .junie-upload
           sudo rm -rf .output.txt
-          sudo rm -rf junie-runner.jar
           sudo rm -rf solution.patch
 
           if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
