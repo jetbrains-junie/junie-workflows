@@ -177,11 +177,11 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         run: |
           echo "Copying logs to target dir..."
-          sudo chown -R runner:runner ./junie-work
+          sudo chown -R runner:runner ./.junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
-          cp -r ./junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r ./junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r ./.junie-work/.matterhorn .junie-upload/.matterhorn
+          cp -r ./.junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
 
       - name: Save junie result summary
         id: junie_summary
