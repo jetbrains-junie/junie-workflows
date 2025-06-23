@@ -6,18 +6,6 @@ on:
       GCP_DOCKER_JUNIE_KEY:
         required: false
     inputs:
-      fix_conflicts:
-        description: "temporary params, not using in workflow"
-        type: boolean
-        required: false
-      fix_checks:
-        description: "temporary params, not using in workflow"
-        type: boolean
-        required: false
-      skip_workflow_file_validation:
-        description: "temporary params, not using in workflow"
-        type: boolean
-        required: false
       workflow_params:
         description: "JSON string containing all workflow parameters"
         type: string
@@ -26,6 +14,16 @@ on:
         description: "Which runner use to run junie"
         type: string
         default: "ubuntu-latest"
+        required: false
+      junie_ide_version:
+        description: ""
+        type: string
+        default: "251"
+        required: false
+      junie_version:
+        description: ""
+        type: string
+        default: "175.1"
         required: false
 
 jobs:
@@ -43,19 +41,13 @@ jobs:
         with:
           script: |
             const params = JSON.parse(core.getInput('params'));
-
+            
             // Add workflow start time in milliseconds
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
 
-            // for now we always use this default params for idea and junie versions
-            const defaultParams = {
-              junie_ide_version: '251',
-              junie_version: '175.1',
-              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/175.1/junie.sh'
-            }
-            const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
-
+            const finalParams = { ...params, workflow_start_time: workflowStartTime };
+            
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
             });         
@@ -80,8 +72,7 @@ jobs:
         timeout-minutes: 50
         env:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
-          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
+          EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_RUNS: true
         with:
@@ -104,7 +95,7 @@ jobs:
             
             cd .junie-work
             echo "Downloading ej-runner"
-            wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
+            wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
 
             echo "Running ej-runner"
             
@@ -116,8 +107,8 @@ jobs:
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
             
-            export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
-            export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+            export JUNIE_VERSION="${{ inputs.junie_version }}"
+            export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
             chmod +x ./junie.sh && ./junie.sh
 
       - name: Extracting .idea and ej-logs from container
@@ -140,8 +131,7 @@ jobs:
         timeout-minutes: 50
         env:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
-          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
+          EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_RUNS: true
         run: |
@@ -157,7 +147,7 @@ jobs:
           cd .junie-work
           
           echo "Downloading ej-runner"
-          sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
+          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
 
           echo "Running ej-runner"
           # Calculate time limit: 60 minutes minus time passed since workflow start
@@ -168,8 +158,8 @@ jobs:
           echo "Time passed since workflow start (ms): $time_passed"
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
 
-          export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
-          export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+          export JUNIE_VERSION="${{ inputs.junie_version }}"
+          export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
 
           sudo -E chmod +x ./junie.sh && ./junie.sh
 
@@ -241,12 +231,6 @@ jobs:
             echo "Removing untracked '.idea' directory"
             sudo rm -rf .idea
           fi
-
-      # Uncomment when we support auto resolve conflicts
-      # - name: Reset git changes from junie
-      #   if: always()
-      #   run: |
-      #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
       - name: Make Pull Request for the changes
         if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
