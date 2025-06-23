@@ -2,9 +2,6 @@ name: junie
 
 on:
   workflow_call:
-    secrets:
-      GCP_DOCKER_JUNIE_KEY:
-        required: false
     inputs:
       workflow_params:
         description: "JSON string containing all workflow parameters"
@@ -23,7 +20,7 @@ on:
       junie_version:
         description: ""
         type: string
-        default: "175.1"
+        default: "180.1"
         required: false
 
 jobs:
@@ -50,7 +47,7 @@ jobs:
             
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
-            });         
+            });
 
       - name: Checkout repository
         uses: actions/checkout@v4
