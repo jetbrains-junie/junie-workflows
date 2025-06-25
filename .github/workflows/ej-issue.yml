@@ -20,7 +20,7 @@ on:
       junie_version:
         description: ""
         type: string
-        default: "180.1"
+        default: "183.1"
         required: false
       debug:
         description: "Enables debug logging"
@@ -82,12 +82,12 @@ jobs:
           push: never
           env: |
             EJ_IDE_NAME
-            EJ_TASK_NAME
-            EJ_TASK_TEXT
+            EJ_TASK
             EJ_AUTH_GITHUB_TOKEN            
             MULTI_RUNS
           runCmd: |
-            JUNIE_WORK_TEMP=$(mkdir -d /tmp/junie_work)
+            mkdir /tmp/junie_work
+            JUNIE_WORK_TEMP="/tmp/junie_work"
             echo "Junie working directory: $JUNIE_WORK_TEMP"
             
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
@@ -139,7 +139,8 @@ jobs:
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_RUNS: true
         run: |
-          JUNIE_WORK_TEMP=$(mkdir -d /tmp/junie_work)
+          mkdir /tmp/junie_work
+          JUNIE_WORK_TEMP="/tmp/junie_work"
           echo "Junie working directory: $JUNIE_WORK_TEMP"
  
           export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
