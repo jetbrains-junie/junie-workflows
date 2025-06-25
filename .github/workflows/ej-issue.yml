@@ -22,6 +22,11 @@ on:
         type: string
         default: "180.1"
         required: false
+      debug:
+        description: "Enables debug logging"
+        type: boolean
+        default: false
+        required: false
 
 jobs:
   run-junie:
@@ -90,6 +95,10 @@ jobs:
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
             export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
             export EJ_PROJECT=$(realpath ".")
+
+            if [[ "${{ inputs.debug }}" == "true" ]]; then
+              export MATTERHORN_DEBUG_LOG=true
+            fi            
             
             cd $JUNIE_WORK_TEMP
             echo "Downloading ej-runner"
@@ -138,6 +147,10 @@ jobs:
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
           export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
           export EJ_PROJECT=$(realpath ".")
+
+          if [[ "${{ inputs.debug }}" == "true" ]]; then
+            export MATTERHORN_DEBUG_LOG=true
+          fi
 
           cd $JUNIE_WORK_TEMP
           
