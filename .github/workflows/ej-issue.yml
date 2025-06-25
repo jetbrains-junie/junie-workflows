@@ -63,7 +63,8 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
 
-      - name: Prepare container and run Junie
+      - name: Run Junie in dev container
+        id: run-in-dev-container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         uses: devcontainers/ci@v0.3
         timeout-minutes: 50
@@ -81,16 +82,16 @@ jobs:
             EJ_AUTH_GITHUB_TOKEN            
             MULTI_RUNS
           runCmd: |
-            mkdir ./.junie-work
-            echo "Junie working directory: $(realpath ./.junie-work)"
+            JUNIE_WORK_TEMP=$(mkdir -d /tmp/junie_work)
+            echo "Junie working directory: $JUNIE_WORK_TEMP"
             
-            export EJ_FOLDER_WORK=$(realpath "./.junie-work")
-            export EJ_FOLDER_IDE_CACHES=$(realpath "./.junie-work")
-            export EJ_FOLDER_IDE_CONFIG=$(realpath "./.junie-work")
-            export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
+            export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
+            export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
+            export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
+            export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
             export EJ_PROJECT=$(realpath ".")
             
-            cd .junie-work
+            cd $JUNIE_WORK_TEMP
             echo "Downloading ej-runner"
             wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
 
@@ -111,16 +112,13 @@ jobs:
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
-          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspace.workspaceFolder // "/workspaces/stub"')
-          echo "WORKSPACE=$WORKSPACE_FOLDER"
-
           CONTAINER_ID=$(docker container ls --filter "label=devcontainer.config_file" --quiet | head -n 1)
           echo "CONTAINER=$CONTAINER_ID"
 
           mkdir .junie-upload
 
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
+          docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
+          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Run Junie without container
@@ -132,16 +130,16 @@ jobs:
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_RUNS: true
         run: |
-          mkdir ./.junie-work
-          echo "Junie working directory: $(realpath ./.junie-work)"
+          JUNIE_WORK_TEMP=$(mkdir -d /tmp/junie_work)
+          echo "Junie working directory: $JUNIE_WORK_TEMP"
  
-          export EJ_FOLDER_WORK=$(realpath "./.junie-work")
-          export EJ_FOLDER_IDE_CACHES=$(realpath "./.junie-work")
-          export EJ_FOLDER_IDE_CONFIG=$(realpath "./.junie-work")
-          export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
+          export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
+          export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
+          export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
+          export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
           export EJ_PROJECT=$(realpath ".")
 
-          cd .junie-work
+          cd $JUNIE_WORK_TEMP
           
           echo "Downloading ej-runner"
           sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
@@ -164,11 +162,11 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         run: |
           echo "Copying logs to target dir..."
-          sudo chown -R runner:runner ./.junie-work
+          sudo chown -R runner:runner /tmp/junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
-          cp -r ./.junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r ./.junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
+          cp -r /tmp/junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
 
       - name: Save junie result summary
         id: junie_summary
@@ -215,7 +213,6 @@ jobs:
 
       - name: Restore or remove .idea directory
         run: |
-          sudo rm -rf .junie-work
           sudo rm -rf .junie-upload
           sudo rm -rf .output.txt
           sudo rm -rf solution.patch
