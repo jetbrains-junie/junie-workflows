@@ -13,9 +13,11 @@
 This is the simplest approach, suitable when a pre-built Docker image on a registry (like Docker Hub) meets your needs.
 
 **When to use:**
-*   You need just a standard environment (e.g., `mcr.microsoft.com/vscode/devcontainers/java`).
+*   You need just a standard environment (e.g., `mcr.microsoft.com/vscode/devcontainers/java`). 
+     [Other available base images](https://github.com/devcontainers/images/tree/main/src/), for instance [Python](https://github.com/devcontainers/images/tree/main/src/python)
 *   No custom software installation or complex setup is required beyond
-    what the image and devcontainer features and extensions provide
+    what the image and devcontainer features and extensions provide. 
+[List of features](https://github.com/devcontainers/features/tree/main/src), for instance [Ruby](https://github.com/devcontainers/features/tree/main/src/ruby)
 
 
 **File Structure:**
@@ -40,25 +42,25 @@ your-project/
 }
 ```
 **Explanation:**
-* Github Actions pulls the specified `image` and runs it.
-* Your local project folder is mounted into `/workspace` (by default, unless you specify `workspaceFolder` property) inside the container.
+* Github Actions pulls the specified `image` and runs it
+* Your local project folder is mounted into `/workspace` (by default, unless you specify `workspaceFolder` property) inside the container
 * `features` and `customizations` are applied to the container (additional features installed, etc.)
 
 **Sample repository:**
 
-https://github.com/jetbrains-junie/2048
-https://github.com/jetbrains-junie/2048/blob/main/.devcontainer/devcontainer.json
+https://github.com/jetbrains-junie/simple-devcontainer-java
+https://github.com/jetbrains-junie/simple-devcontainer-java/blob/main/.devcontainer/devcontainer.json
 
 ---
 
 ## Scenario 2: `devcontainer.json` + `Dockerfile` (Custom Single Container)
 
-Use this when you need a customized single-container environment.
+Use this when you need a customized single-container environment
 
 **When to use:**
-*   You need specific OS packages, tools, or libraries installed.
-*   You need a particular user setup or environment variables configured at build time.
-*   You only require one container for your development.
+*   You need specific OS packages, tools, or libraries installed
+*   You need a particular user setup or environment variables configured at build time
+*   You only require one container for your development
 
 **File Structure:**
 ```
@@ -124,7 +126,7 @@ CMD ["sleep", "infinity"]
 * You can still use devcontainer's `features` and `customizations` when using `Dockerfile`
 
 **Note:**
-* **when using `Dockerfile` you need to declare `workspaceFolder` and `workspaceMount`, which will explicitly mount project
+* when using `Dockerfile` you need to declare `workspaceFolder` and `workspaceMount`, which will explicitly mount project
   directory into `/workspace/<project-name>` otherwise the started container won't have the access to the sources
   (the same place as devcontainers use by default) in `devcontainer.json`
 * Junie GitHub app uses some external tools, so it's recommended to use a devcontainer-ready
@@ -133,9 +135,9 @@ CMD ["sleep", "infinity"]
 
 **Sample repository**:
 
-https://github.com/jetbrains-junie/kotlin-spring-chat
-https://github.com/jetbrains-junie/kotlin-spring-chat/blob/main/.devcontainer/devcontainer.json
-https://github.com/jetbrains-junie/kotlin-spring-chat/blob/main/Dockerfile
+https://github.com/jetbrains-junie/sample-devcontainer-Dockerfile
+https://github.com/jetbrains-junie/sample-devcontainer-Dockerfile/blob/main/.devcontainer/devcontainer.json
+https://github.com/jetbrains-junie/sample-devcontainer-Dockerfile/blob/main/Dockerfile
 
 ---
 
@@ -201,10 +203,10 @@ services:
 }
 ```
 **Explanation:**
-*   `dockerComposeFile` points to your `docker-compose.yml`.
-*   `service` specifies which service defined in `docker-compose.yml` devcontainer should use (in this case, `devcontainer_app`).
-*   `workspaceFolder` is the path *inside the specified service's container*.
-*   Docker Compose handles starting all defined services and their dependencies.
+*   `dockerComposeFile` points to your `docker-compose.yml`
+*   `service` specifies which service defined in `docker-compose.yml` devcontainer should use (in this case, `devcontainer_app`)
+*   `workspaceFolder` is the path *inside the specified service's container*
+*   Docker Compose handles starting all defined services and their dependencies
 
 **Note:**
 * similar to the Dockerfile, you need to explicit mount `workspaceFolder` to `/workspace/${localWorkspaceFolderBasename}`.
@@ -212,9 +214,9 @@ services:
 
 **Sample repository**:
 
-https://github.com/jetbrains-junie/workout-logger-demo
-https://github.com/jetbrains-junie/workout-logger-demo/blob/main/.devcontainer/devcontainer.json
-https://github.com/jetbrains-junie/workout-logger-demo/blob/main/.devcontainer/docker-compose.yaml
+https://github.com/jetbrains-junie/sample-devcontainer-compose
+https://github.com/jetbrains-junie/sample-devcontainer-compose/blob/main/.devcontainer/devcontainer.json
+https://github.com/jetbrains-junie/sample-devcontainer-compose/blob/main/.devcontainer/docker-compose.yaml
 
 ---
 
