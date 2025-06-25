@@ -24,12 +24,11 @@ Once installed, Junie will automatically:
 > Junie is currently in closed Early Access.  
 > To join, please visit our [Discord](https://jb.gg/junie/github) or ask to be added to the whitelist.
 
-### Dev Container configuration
-[more information](./devcontainer-setup.md)
+### [Dev Container configuration](./devcontainer-setup.md)
 
 Junie runs in the environment set by your `devcontainer.json` file. This file must define an environment where your project can be built and tested successfully.
 
-We provide a default devcontainer setup, but you might need to adjust it to suit your project's needs.
+We provide a default devcontainer setup, but you might need to adjust it to suit your project's needs. [more information](./devcontainer-setup.md).
 
 To learn more about devcontainers, visit: https://containers.dev/overview.
 
