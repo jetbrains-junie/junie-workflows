@@ -75,6 +75,7 @@ jobs:
         run: find .devcontainer -type f -name "*.sh" -exec chmod +x {} \;
 
       - name: Prepare container and run Junie
+        id: run_junie_in_container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         uses: devcontainers/ci@v0.3
         timeout-minutes: 50
@@ -119,7 +120,11 @@ jobs:
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
             chmod +x ./junie.sh && ./junie.sh
-
+      - name: Check if junie run failed
+        if: failure() && (hashFiles('.devcontainer/devcontainer.json') != '')
+        run: |
+          mkdir -p .junie-upload/.matterhorn/out/
+          echo "${{ steps.run_junie_in_container.outputs.runCmdOutput }}" >> .junie-upload/.matterhorn/out/containerError.md
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
@@ -129,7 +134,7 @@ jobs:
           CONTAINER_ID=$(docker container ls --filter "label=devcontainer.config_file" --quiet | head -n 1)
           echo "CONTAINER=$CONTAINER_ID"
 
-          mkdir .junie-upload
+          mkdir -p .junie-upload
 
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
@@ -269,6 +274,7 @@ jobs:
             ${{ steps.junie_summary.outputs.summary }}
           branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
+          labels: junie
 
       - uses: EndBug/add-and-commit@v9
         name: Commit changes to the same branch
