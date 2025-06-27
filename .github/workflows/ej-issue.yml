@@ -83,7 +83,7 @@ jobs:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
           EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.junie_runner_token }}
+          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_RUNS: true
         with:
           push: never
