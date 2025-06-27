@@ -83,7 +83,7 @@ jobs:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
           EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.junie_runner_token }}
           MULTI_RUNS: true
         with:
           push: never
@@ -257,7 +257,7 @@ jobs:
         if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ steps.workflow-params.outputs.app_token }}
+          token: ${{ steps.workflow-params.outputs.pull_requests_creation_token }}
           commit-message: "${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
           title: "[Junie]: ${{ steps.junie_summary.outputs.name }}"
           body: |
@@ -274,7 +274,6 @@ jobs:
             ${{ steps.junie_summary.outputs.summary }}
           branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
-          labels: junie
 
       - uses: EndBug/add-and-commit@v9
         name: Commit changes to the same branch
