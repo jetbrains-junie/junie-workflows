@@ -20,6 +20,7 @@ on:
 
 jobs:
   run-junie:
+    timeout-minutes: 180
     runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
@@ -252,7 +253,6 @@ jobs:
         if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ steps.workflow-params.outputs.pull_requests_creation_token }}
           commit-message: "${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
           title: "[Junie]: ${{ steps.junie_summary.outputs.name }}"
           body: |
