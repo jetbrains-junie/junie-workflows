@@ -67,7 +67,7 @@ jobs:
         id: run_junie_in_container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         uses: devcontainers/ci@v0.3
-        timeout-minutes: 50
+        timeout-minutes: 180
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
@@ -135,7 +135,7 @@ jobs:
 
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
-        timeout-minutes: 50
+        timeout-minutes: 180
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
