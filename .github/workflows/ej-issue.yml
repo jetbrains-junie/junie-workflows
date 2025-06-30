@@ -51,8 +51,8 @@ jobs:
             // for now we always use this default params for idea and junie versions
             const defaultParams = {
               junie_ide_version: '251',
-              junie_version: '175.1',
-              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/175.1/junie.sh'
+              junie_version: '192.1',
+              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/192.1/junie.sh'
             }
             const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
 
@@ -83,7 +83,7 @@ jobs:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
           EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
           MULTI_RUNS: true
         with:
           push: never
@@ -147,7 +147,7 @@ jobs:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
           EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
           MULTI_RUNS: true
         run: |
           mkdir ./.junie-work
