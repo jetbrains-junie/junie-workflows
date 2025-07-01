@@ -52,8 +52,8 @@ jobs:
             // for now we always use this default params for idea and junie versions
             const defaultParams = {
               junie_ide_version: '251',
-              junie_version: '175.1',
-              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/175.1/junie.sh'
+              junie_version: '198.1',
+              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/198.1/junie.sh'
             }
             const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
 
@@ -138,7 +138,7 @@ jobs:
           mkdir -p .junie-upload
 
           docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
+          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/idea-logs/log/" .junie-upload/.matterhorn/ || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Run Junie without container
@@ -187,7 +187,7 @@ jobs:
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
           cp -r ./.junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r ./.junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r ./.junie-work/idea-logs/log/ .junie-upload/.matterhorn/
 
       - name: Save junie result summary
         id: junie_summary
