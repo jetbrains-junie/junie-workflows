@@ -130,7 +130,7 @@ jobs:
           mkdir -p .junie-upload
 
           docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
+          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/" .junie-upload/.matterhorn/ || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Run Junie without container
@@ -183,7 +183,7 @@ jobs:
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
           cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r /tmp/junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r /tmp/junie-work/idea-logs/log/ .junie-upload/.matterhorn/
 
       - name: Save junie result summary
         id: junie_summary
