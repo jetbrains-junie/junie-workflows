@@ -24,7 +24,7 @@ on:
         required: true
       runs-on:
         description: "Which runner use to run junie"
-        type: string
+        type: [string, array]
         default: "ubuntu-latest"
         required: false
 
