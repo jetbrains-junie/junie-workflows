@@ -84,6 +84,7 @@ jobs:
           EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: true
         with:
           push: never
@@ -93,6 +94,7 @@ jobs:
             EJ_TASK_TEXT
             EJ_AUTH_GITHUB_TOKEN            
             MULTI_RUNS
+            MATTERHORN_DEBUG_LOG
           runCmd: |
             mkdir ./.junie-work
             echo "Junie working directory: $(realpath ./.junie-work)"
@@ -149,6 +151,7 @@ jobs:
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
           EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MULTI_RUNS: true
+          MATTERHORN_DEBUG_LOG: true
         run: |
           mkdir ./.junie-work
           echo "Junie working directory: $(realpath ./.junie-work)"
