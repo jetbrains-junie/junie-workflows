@@ -33,7 +33,6 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
-      pull-requests: write
     steps:
       - name: Extract workflow params
         id: workflow-params
@@ -51,8 +50,8 @@ jobs:
             // for now we always use this default params for idea and junie versions
             const defaultParams = {
               junie_ide_version: '251',
-              junie_version: '196.1',
-              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/196.1/junie.sh'
+              junie_version: '205.1',
+              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/205.1/junie.sh'
             }
             const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
 
@@ -81,21 +80,25 @@ jobs:
         timeout-minutes: 50
         env:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
-          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
+          EJ_TASK: ${{ steps.workflow-params.outputs.task }}
+          EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
+          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MATTERHORN_DEBUG_LOG: true
           MULTI_RUNS: true
+          MATTERHORN_DEBUG_LOG: true
         with:
           push: never
           env: |
             EJ_IDE_NAME
-            EJ_TASK_NAME
+            EJ_TASK
+            EJ_AUTH_GITHUB_TOKEN  
+            EJ_AUTH_INGRAZZIO_GITHUB_TOKEN
             EJ_TASK_TEXT
-            EJ_AUTH_GITHUB_TOKEN            
+            EJ_TASK_NAME
             MULTI_RUNS
             MATTERHORN_DEBUG_LOG
           runCmd: |
+            set -e
             mkdir ./.junie-work
             echo "Junie working directory: $(realpath ./.junie-work)"
             
@@ -121,7 +124,8 @@ jobs:
             
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
-            chmod +x ./junie.sh && ./junie.sh
+            chmod +x ./junie.sh
+            /bin/sh ./junie.sh
       - name: Check if junie run failed
         if: failure() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
@@ -147,9 +151,11 @@ jobs:
         timeout-minutes: 50
         env:
           EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
-          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
+          EJ_TASK: ${{ steps.workflow-params.outputs.task }}
+          EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
+          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_AUTH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
         run: |
@@ -270,8 +276,7 @@ jobs:
             We’d love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/github).
 
             - 🔗 **Issue:** #${{ steps.workflow-params.outputs.issue_id }}
-            - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}
-            - 🏷 **Title:** ${{ steps.workflow-params.outputs.issue_title }}            
+            - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}           
 
             ### 📊 Junie Summary
             ${{ steps.junie_summary.outputs.summary }}
