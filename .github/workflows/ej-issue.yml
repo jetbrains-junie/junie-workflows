@@ -50,8 +50,8 @@ jobs:
             // for now we always use this default params for idea and junie versions
             const defaultParams = {
               junie_ide_version: '251',
-              junie_version: '205.1',
-              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/205.1/junie.sh'
+              junie_version: '201.1',
+              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/201.1/junie.sh'
             }
             const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
 
