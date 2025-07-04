@@ -2,22 +2,7 @@ name: junie
 
 on:
   workflow_call:
-    secrets:
-      GCP_DOCKER_JUNIE_KEY:
-        required: false
     inputs:
-      fix_conflicts:
-        description: "temporary params, not using in workflow"
-        type: boolean
-        required: false
-      fix_checks:
-        description: "temporary params, not using in workflow"
-        type: boolean
-        required: false
-      skip_workflow_file_validation:
-        description: "temporary params, not using in workflow"
-        type: boolean
-        required: false
       workflow_params:
         description: "JSON string containing all workflow parameters"
         type: string
@@ -26,6 +11,21 @@ on:
         description: "Which runner use to run junie"
         type: string
         default: "ubuntu-latest"
+        required: false
+      junie_ide_version:
+        description: ""
+        type: string
+        default: "251"
+        required: false
+      junie_ide:
+        description: ""
+        type: string
+        default: "IdeaUltimate"
+        required: false
+      junie_version:
+        description: ""
+        type: string
+        default: "206.1"
         required: false
 
 jobs:
@@ -47,17 +47,11 @@ jobs:
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
 
-            // for now we always use this default params for idea and junie versions
-            const defaultParams = {
-              junie_ide_version: '251',
-              junie_version: '206.1',
-              junie_runner: 'https://github.com/jetbrains-junie/artifacts/releases/download/206.1/junie.sh'
-            }
-            const finalParams = { ...defaultParams, ...params, project_stack: 'jvm', workflow_start_time: workflowStartTime };
-
+            const finalParams = { ...params, workflow_start_time: workflowStartTime };
+            
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
-            });         
+            });
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -99,18 +93,19 @@ jobs:
             MATTERHORN_DEBUG_LOG
           runCmd: |
             set -e
-            mkdir ./.junie-work
-            echo "Junie working directory: $(realpath ./.junie-work)"
+            mkdir /tmp/junie-work
+            JUNIE_WORK_TEMP="/tmp/junie-work"
+            echo "Junie working directory: $JUNIE_WORK_TEMP"
             
-            export EJ_FOLDER_WORK=$(realpath "./.junie-work")
-            export EJ_FOLDER_IDE_CACHES=$(realpath "./.junie-work")
-            export EJ_FOLDER_IDE_CONFIG=$(realpath "./.junie-work")
-            export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
+            export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
+            export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
+            export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
+            export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
             export EJ_PROJECT=$(realpath ".")
             
-            cd .junie-work
+            cd $JUNIE_WORK_TEMP
             echo "Downloading ej-runner"
-            wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
+            wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
 
             echo "Running ej-runner"
             
@@ -122,8 +117,9 @@ jobs:
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
             
-            export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
-            export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+            export EJ_IDE_NAME="${{ inputs.junie_ide }}"
+            export JUNIE_VERSION="${{ inputs.junie_version }}"
+            export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
             chmod +x ./junie.sh
             /bin/sh ./junie.sh
       - name: Check if junie run failed
@@ -134,16 +130,13 @@ jobs:
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
-          WORKSPACE_FOLDER=$(devcontainer read-configuration --workspace-folder . | jq -r '.workspace.workspaceFolder // "/workspaces/stub"')
-          echo "WORKSPACE=$WORKSPACE_FOLDER"
-
           CONTAINER_ID=$(docker container ls --filter "label=devcontainer.config_file" --quiet | head -n 1)
           echo "CONTAINER=$CONTAINER_ID"
 
           mkdir -p .junie-upload
 
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"$WORKSPACE_FOLDER/.junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
+          docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
+          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
       - name: Run Junie without container
@@ -159,19 +152,20 @@ jobs:
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
         run: |
-          mkdir ./.junie-work
-          echo "Junie working directory: $(realpath ./.junie-work)"
+          mkdir /tmp/junie-work
+          JUNIE_WORK_TEMP="/tmp/junie-work"
+          echo "Junie working directory: $JUNIE_WORK_TEMP"
  
-          export EJ_FOLDER_WORK=$(realpath "./.junie-work")
-          export EJ_FOLDER_IDE_CACHES=$(realpath "./.junie-work")
-          export EJ_FOLDER_IDE_CONFIG=$(realpath "./.junie-work")
-          export EJ_FOLDER_AGENT_CACHES=$(realpath "./.junie-work")
+          export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
+          export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
+          export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
+          export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
           export EJ_PROJECT=$(realpath ".")
 
-          cd .junie-work
+          cd $JUNIE_WORK_TEMP
           
           echo "Downloading ej-runner"
-          sudo wget -nv "${{ steps.workflow-params.outputs.junie_runner }}" -O junie.sh
+          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
 
           echo "Running ej-runner"
           # Calculate time limit: 60 minutes minus time passed since workflow start
@@ -182,8 +176,9 @@ jobs:
           echo "Time passed since workflow start (ms): $time_passed"
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
 
-          export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
-          export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+          export EJ_IDE_NAME="${{ inputs.junie_ide }}"
+          export JUNIE_VERSION="${{ inputs.junie_version }}"
+          export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
 
           sudo -E chmod +x ./junie.sh && ./junie.sh
 
@@ -191,11 +186,11 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         run: |
           echo "Copying logs to target dir..."
-          sudo chown -R runner:runner ./.junie-work
+          sudo chown -R runner:runner /tmp/junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
-          cp -r ./.junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r ./.junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
+          cp -r /tmp/junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
 
       - name: Save junie result summary
         id: junie_summary
@@ -242,7 +237,6 @@ jobs:
 
       - name: Restore or remove .idea directory
         run: |
-          sudo rm -rf .junie-work
           sudo rm -rf .junie-upload
           sudo rm -rf .output.txt
           sudo rm -rf solution.patch
