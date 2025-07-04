@@ -117,7 +117,7 @@ jobs:
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
             
-            export JUNIE_IDE_NAME="${{ inputs.junie_ide }}"
+            export EJ_IDE_NAME="${{ inputs.junie_ide }}"
             export JUNIE_VERSION="${{ inputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
             chmod +x ./junie.sh
@@ -176,7 +176,7 @@ jobs:
           echo "Time passed since workflow start (ms): $time_passed"
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
 
-          export JUNIE_IDE_NAME="${{ inputs.junie_ide }}"
+          export EJ_IDE_NAME="${{ inputs.junie_ide }}"
           export JUNIE_VERSION="${{ inputs.junie_version }}"
           export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
 
