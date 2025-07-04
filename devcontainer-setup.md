@@ -103,7 +103,7 @@ CMD ["sleep", "infinity"]
   // which is "/workspace/${localWorkspaceFolderBasename}"
   // for instance, /workspace/kotlin-spring-chat
   "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
-  
+
   // declaring a "workspaceFolder" also requires declaring mount point for it
   // see https://containers.dev/implementors/json_reference/ for details
   // here we need to mount a folder in github actions to the devcontainer
@@ -217,6 +217,60 @@ services:
 https://github.com/jetbrains-junie/sample-devcontainer-compose
 https://github.com/jetbrains-junie/sample-devcontainer-compose/blob/main/.devcontainer/devcontainer.json
 https://github.com/jetbrains-junie/sample-devcontainer-compose/blob/main/.devcontainer/docker-compose.yaml
+
+---
+
+## Scenario 4: Kotlin Multiplatform (KMP) Development
+
+Use this configuration for Kotlin Multiplatform projects that target Android.
+
+**When to use:**
+* You're developing a Kotlin Multiplatform project
+* You need Android SDK support
+* You want a pre-configured environment for KMP development
+
+**File Structure:**
+```
+your-project/
+└── .devcontainer/
+    └── devcontainer.json
+```
+
+**`.devcontainer/devcontainer.json` Example:**
+```json
+{
+  "name": "Android Dev",
+  "image": "mcr.microsoft.com/devcontainers/java:17-bookworm",
+
+  // Add the Android SDK feature with specific versions
+  "features": {
+    "ghcr.io/NordcomInc/devcontainer-features/android-sdk:1": {
+      // SDK platform version
+      "platform": "35",
+      // SDK build-tools version
+      "build_tools": "35.0.0"
+    }
+  },
+
+  "remoteUser": "vscode"
+
+  // UNCOMMENT TO ACCEPT LICENSES
+  //,"postCreateCommand": "yes | sdkmanager --licenses"
+}
+```
+
+**Explanation:**
+* Uses a Java 17 base image which is suitable for Kotlin development
+* Adds the Android SDK feature with specified platform and build tools versions
+* Sets the remote user to "vscode"
+* Includes a commented option to automatically accept Android SDK licenses
+
+**Note:**
+* You may need to uncomment the `postCreateCommand` line to accept Android SDK licenses automatically
+* Adjust the platform and build_tools versions according to your project requirements
+
+**Sample repository:**
+https://github.com/jetbrains-junie/example-kmp
 
 ---
 
