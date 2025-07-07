@@ -259,12 +259,6 @@ your-project/
 }
 ```
 
-**Explanation:**
-* Uses a Java 17 base image which is suitable for Kotlin development
-* Adds the Android SDK feature with specified platform and build tools versions
-* Sets the remote user to "vscode"
-* Includes a commented option to automatically accept Android SDK licenses
-
 **Note:**
 * You may need to uncomment the `postCreateCommand` line to accept Android SDK licenses automatically
 * Adjust the platform and build_tools versions according to your project requirements
