@@ -269,7 +269,7 @@ jobs:
             It's still learning, developing, and might make mistakes. Please make sure you review the changes before you accept them.
             We’d love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/github).
 
-            - 🔗 **Issue:** #${{ steps.workflow-params.outputs.issue_id }}
+            - 🔗 **Issue:** Fixes: #${{ steps.workflow-params.outputs.issue_id }}
             - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}           
 
             ### 📊 Junie Summary
