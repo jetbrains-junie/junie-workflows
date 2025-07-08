@@ -314,7 +314,6 @@ fi
 ```
 
 **Explanation:**
-* Uses the official PHP devcontainer image
 * Automatically runs the install-dependencies.sh script after container creation
 * The script intelligently finds and installs Composer dependencies:
   * If composer.json exists in the root directory, it installs dependencies there
