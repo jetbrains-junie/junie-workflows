@@ -268,6 +268,69 @@ https://github.com/jetbrains-junie/example-kmp
 
 ---
 
+## Scenario 5: PHP Development with Dependency Management
+
+Use this configuration for PHP projects with automatic Composer dependency management.
+
+**File Structure:**
+```
+your-project/
+└── .devcontainer/
+    ├── devcontainer.json
+    └── install-dependencies.sh
+```
+
+**`.devcontainer/devcontainer.json` Example:**
+```json
+{
+  "name": "JunieTest Development",
+  "image": "mcr.microsoft.com/devcontainers/php",
+  "postCreateCommand": ".devcontainer/install-dependencies.sh"
+}
+```
+
+**`.devcontainer/install-dependencies.sh` Example:**
+
+```bash
+#!/bin/bash
+
+if [ -f "composer.json" ]; then
+    echo "Found composer.json in project root. Installing dependencies..."
+    composer install --no-interaction --ignore-platform-reqs
+    echo "✅ PHP dependencies installed successfully in project root."
+else
+    echo "⚠️ No composer.json in project root. Searching for composer.json files in subdirectories..."
+
+    find . -type f -name "composer.json" | while read composer_file; do
+        dir=$(dirname "$composer_file")
+        echo "Installing dependencies in $dir..."
+        (cd "$dir" && composer install --no-interaction --ignore-platform-reqs)
+        if [ $? -eq 0 ]; then
+            echo "✅ Dependencies installed successfully in $dir."
+        else
+            echo "❌ Failed to install dependencies in $dir."
+        fi
+    done
+fi
+```
+
+**Explanation:**
+* Uses the official PHP devcontainer image
+* Automatically runs the install-dependencies.sh script after container creation
+* The script intelligently finds and installs Composer dependencies:
+  * If composer.json exists in the root directory, it installs dependencies there
+  * Otherwise, it searches for composer.json files in subdirectories and installs dependencies in each location
+
+**Note:**
+* Make sure the install-dependencies.sh script has executable permissions (`chmod +x .devcontainer/install-dependencies.sh`)
+* The script uses the `--ignore-platform-reqs` flag to bypass platform requirement checks, which can be helpful in containerized environments
+* You can customize the script to add more PHP-specific setup steps as needed
+
+**Sample repository:**
+https://github.com/jetbrains-junie/example-php
+
+---
+
 ## Other scenarios
 
 For more advanced scenarious, such as `docker-compose.yml`+`Dockerfile`, multiple `docker compose` array, etc., please
