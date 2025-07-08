@@ -1,3 +1,16 @@
+# Dev Container Setup Guide
+
+## Contents
+- [Core Configuration Files](#core-configuration-files)
+- [Scenario 1: Plain devcontainer.json (Using a Pre-built Image)](#scenario-1-plain-devcontainerjson-using-a-pre-built-image)
+- [Scenario 2: devcontainer.json + Dockerfile (Custom Single Container)](#scenario-2-devcontainerjson--dockerfile-custom-single-container)
+- [Scenario 3: devcontainer.json + docker-compose.yml (Multi-Container with Pre-built Images)](#scenario-3-devcontainerjson--docker-composeyml-multi-container-with-pre-built-images)
+- [Scenario 4: Kotlin Multiplatform (KMP) Development](#scenario-4-kotlin-multiplatform-kmp-development)
+- [Scenario 5: PHP Development with Dependency Management](#scenario-5-php-development-with-dependency-management)
+- [Other scenarios](#other-scenarios)
+
+---
+
 ## Core Configuration Files
 
 *   **`.devcontainer/devcontainer.json`**: The primary configuration file. It tells the GitHub Actions how to create and
