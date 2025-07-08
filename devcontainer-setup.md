@@ -290,7 +290,6 @@ your-project/
 ```
 
 **`.devcontainer/install-dependencies.sh` Example:**
-
 ```bash
 #!/bin/bash
 
