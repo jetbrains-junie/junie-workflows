@@ -12,20 +12,10 @@ on:
         type: string
         default: "ubuntu-latest"
         required: false
-      junie_ide_version:
-        description: ""
-        type: string
-        default: "251"
-        required: false
       junie_ide:
-        description: ""
+        description: "IDE which will be used to handle tasks. Current available options are IdeaUltimate or PhpStorm"
         type: string
         default: "IdeaUltimate"
-        required: false
-      junie_version:
-        description: ""
-        type: string
-        default: "206.1"
         required: false
 
 jobs:
@@ -47,7 +37,12 @@ jobs:
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
 
-            const finalParams = { ...params, workflow_start_time: workflowStartTime };
+            const finalParams = { 
+              junie_ide_version: '251',
+              junie_version: '206.1',
+              workflow_start_time: workflowStartTime,  
+              ...params,                           
+            };
             
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
@@ -73,7 +68,6 @@ jobs:
         uses: devcontainers/ci@v0.3
         timeout-minutes: 50
         env:
-          EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
           EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
@@ -83,7 +77,6 @@ jobs:
         with:
           push: never
           env: |
-            EJ_IDE_NAME
             EJ_TASK
             EJ_AUTH_GITHUB_TOKEN  
             EJ_AUTH_INGRAZZIO_GITHUB_TOKEN
@@ -105,7 +98,7 @@ jobs:
             
             cd $JUNIE_WORK_TEMP
             echo "Downloading ej-runner"
-            wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
+            wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
             echo "Running ej-runner"
             
@@ -118,8 +111,8 @@ jobs:
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
             
             export EJ_IDE_NAME="${{ inputs.junie_ide }}"
-            export JUNIE_VERSION="${{ inputs.junie_version }}"
-            export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
+            export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
+            export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
             chmod +x ./junie.sh
             /bin/sh ./junie.sh
       - name: Check if junie run failed
@@ -143,7 +136,6 @@ jobs:
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         timeout-minutes: 50
         env:
-          EJ_IDE_NAME: ${{ steps.workflow-params.outputs.ide }}
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
           EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
@@ -165,7 +157,7 @@ jobs:
           cd $JUNIE_WORK_TEMP
           
           echo "Downloading ej-runner"
-          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ inputs.junie_version }}/junie.sh" -O junie.sh
+          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{  steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
           echo "Running ej-runner"
           # Calculate time limit: 60 minutes minus time passed since workflow start
@@ -177,8 +169,8 @@ jobs:
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
 
           export EJ_IDE_NAME="${{ inputs.junie_ide }}"
-          export JUNIE_VERSION="${{ inputs.junie_version }}"
-          export JUNIE_IDE_VERSION="${{ inputs.junie_ide_version }}"
+          export JUNIE_VERSION="${{  steps.workflow-params.outputs.junie_version }}"
+          export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
           sudo -E chmod +x ./junie.sh && ./junie.sh
 
@@ -196,13 +188,13 @@ jobs:
         id: junie_summary
         continue-on-error: true
         run: |
-          summary=$(jq -r '.content.output' .junie-upload/.matterhorn/*issue_md.*swe_patch*)
+          summary=$(jq -r '.content.output | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
           echo "summary is $summary"
           echo "summary<<EOF" >> $GITHUB_OUTPUT
           echo "$summary" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-          name=$(jq -r '.content.title' .junie-upload/.matterhorn/*issue_md.*swe_patch*)
+          name=$(jq -r '.content.title | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
           echo "name is $name"
           name=${name:-"Improvement from Junie"}
           echo "name=$name" >> "$GITHUB_OUTPUT" 
