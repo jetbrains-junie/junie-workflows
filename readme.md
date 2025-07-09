@@ -10,6 +10,14 @@ right here, on GitHub.
 
 ## ✅ How to Enable Junie
 
+### Enable GitHub Actions
+
+Before installing Junie, make sure GitHub Actions are enabled in your repository:
+1. Go to your repository's **Settings**
+2. Navigate to **Actions > General**
+3. Select **Allow all actions and reusable workflows**
+4. Click **Save**
+
 ### Install the GitHub App
 
 Simply install the [Junie GitHub App](https://github.com/apps/jetbrains-junie) — setup is automatic! 💫
