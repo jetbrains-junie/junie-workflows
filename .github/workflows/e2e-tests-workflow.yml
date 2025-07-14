@@ -1,0 +1,18 @@
+name: Junie E2E tests run
+run-name: Junie PR Test
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/**/*.yml'
+      - '.github/workflows/**/*.yaml'
+
+jobs:
+  call_tests:
+    uses: JetBrains/junie-cloud/src/main/resources/templates/init-workflow.yml@main
+    with:
+      pr_repo: ${{ github.event.pull_request.head.repo.full_name }}
+      pr_ref:  ${{ github.event.pull_request.head.sha }}
+    secrets:
+      CALLER_PAT: ${{ secrets.CALLER_PAT }}
