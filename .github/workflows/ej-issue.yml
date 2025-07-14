@@ -74,6 +74,7 @@ jobs:
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
           EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
+          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
         with:
