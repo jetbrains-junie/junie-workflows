@@ -33,6 +33,8 @@ jobs:
           script: |
             const params = JSON.parse(core.getInput('params'));
 
+            console.log(`::add-mask::${params.ingrazzio_token}`)
+
             // Add workflow start time in milliseconds
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
