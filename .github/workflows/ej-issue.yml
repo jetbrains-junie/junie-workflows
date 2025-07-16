@@ -41,7 +41,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '206.1',
+              junie_version: '226.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
@@ -93,6 +93,7 @@ jobs:
             JUNIE_WORK_TEMP="/tmp/junie-work"
             echo "Junie working directory: $JUNIE_WORK_TEMP"
             
+            export EJ_RUN_AS_ROOT=true
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
@@ -151,6 +152,7 @@ jobs:
           JUNIE_WORK_TEMP="/tmp/junie-work"
           echo "Junie working directory: $JUNIE_WORK_TEMP"
  
+          export EJ_RUN_AS_ROOT=true
           export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
