@@ -93,6 +93,23 @@ jobs:
             JUNIE_WORK_TEMP="/tmp/junie-work"
             echo "Junie working directory: $JUNIE_WORK_TEMP"
             
+            command_exists() {
+              command -v "$1" >/dev/null 2>&1
+            }
+            
+            echo "Installing IDEA dependencies"
+            
+            if [[ "$OSTYPE" == linux* ]]; then
+              if command_exists "apt-get"; then
+                sudo apt-get -qq update
+                sudo apt-get -qq install -y libfreetype6 fonts-liberation fontconfig
+              elif command_exists "pacman"; then
+                sudo pacman -Sy --noconfirm freetype2 ttf-liberation fontconfig
+              else
+                echo "Error: No supported package manager found (apt-get or pacman)"
+              fi
+            fi
+  
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
@@ -175,7 +192,7 @@ jobs:
           export JUNIE_VERSION="${{  steps.workflow-params.outputs.junie_version }}"
           export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
-          sudo -E chmod +x ./junie.sh && ./junie.sh
+          chmod +x ./junie.sh && ./junie.sh
 
       - name: Extracting .idea and ej-logs for non-container run
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
