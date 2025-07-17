@@ -175,7 +175,7 @@ jobs:
           export JUNIE_VERSION="${{  steps.workflow-params.outputs.junie_version }}"
           export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
-          sudo -E chmod +x ./junie.sh && ./junie.sh
+          chmod +x ./junie.sh && ./junie.sh
 
       - name: Extracting .idea and ej-logs for non-container run
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
