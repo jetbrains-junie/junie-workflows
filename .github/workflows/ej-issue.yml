@@ -41,7 +41,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '226.1',
+              junie_version: '227.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
@@ -73,8 +73,7 @@ jobs:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
           EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
+          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
         with:
@@ -84,7 +83,6 @@ jobs:
             EJ_AUTH_GITHUB_TOKEN  
             EJ_AUTH_INGRAZZIO_GITHUB_TOKEN
             EJ_TASK_TEXT
-            EJ_TASK_NAME
             MULTI_RUNS
             MATTERHORN_DEBUG_LOG
           runCmd: |
@@ -176,8 +174,7 @@ jobs:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
           EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
+          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
         run: |
