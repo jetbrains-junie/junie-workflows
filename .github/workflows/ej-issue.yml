@@ -152,6 +152,23 @@ jobs:
           docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
+          # rename containerError.md to executionError.md if main.log exists (aka execution took place)
+          LOG_FILE=".junie-upload/.matterhorn/.matterhorn/out/main.log"
+          CONTAINER_ERROR_FILE=".junie-upload/.matterhorn/out/containerError.md"
+          EXECUTION_ERROR_FILE=".junie-upload/.matterhorn/out/executionError.md"
+          
+          # Check if the log file exists
+          if [ -f "$LOG_FILE" ]; then
+            # Check if the error file exists before attempting to rename
+            if [ -f "$CONTAINER_ERROR_FILE" ]; then
+              # Rename the error file
+              mv "$CONTAINER_ERROR_FILE" "$EXECUTION_ERROR_FILE"
+              echo "Renamed $CONTAINER_ERROR_FILE to $EXECUTION_ERROR_FILE"
+            fi
+          else
+            echo "$LOG_FILE doesn't exist, assuming container error"
+          fi
+
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
         timeout-minutes: 50
