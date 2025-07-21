@@ -131,7 +131,7 @@ jobs:
             export EJ_IDE_NAME="${{ inputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
-            chmod +x ./junie.sh
+            sudo chmod +x ./junie.sh
             /bin/sh ./junie.sh
       - name: Check if junie run failed
         if: failure() && (hashFiles('.devcontainer/devcontainer.json') != '')
