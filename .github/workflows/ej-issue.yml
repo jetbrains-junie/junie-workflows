@@ -37,14 +37,6 @@ jobs:
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
 
-            if (params.ingrazzio_token_jwt) {
-              console.log('Decoding ingrazzio jwt token')
-              const payload = params.ingrazzio_token_jwt.split('.')[1];
-              
-              const decodedPayload = Buffer.from(payload, 'base64').toString('utf8');
-              params.ingrazzio_token = JSON.parse(decodedPayload).sub;
-            }
-
             const finalParams = { 
               junie_ide_version: '251',
               junie_version: '227.1',
@@ -78,7 +70,6 @@ jobs:
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
-          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
@@ -119,7 +110,10 @@ jobs:
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
             export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
             export EJ_PROJECT=$(realpath ".")
-            
+
+            decoded_payload=$(echo "${{ steps.workflow-params.outputs.ingrazzio_token_jwt }}" | cut -d'.' -f2 | base64 -d)
+            export EJ_AUTH_INGRAZZIO_GITHUB_TOKEN=$(echo "$decoded_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+
             cd $JUNIE_WORK_TEMP
             echo "Downloading ej-runner"
             wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
@@ -179,7 +173,6 @@ jobs:
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
-          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
@@ -193,6 +186,9 @@ jobs:
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
           export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
           export EJ_PROJECT=$(realpath ".")
+
+          decoded_payload=$(echo "${{ steps.workflow-params.outputs.ingrazzio_token_jwt }}" | cut -d'.' -f2 | base64 -d)
+          export EJ_AUTH_INGRAZZIO_GITHUB_TOKEN=$(echo "$decoded_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
 
           cd $JUNIE_WORK_TEMP
           
