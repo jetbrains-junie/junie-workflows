@@ -33,11 +33,17 @@ jobs:
           script: |
             const params = JSON.parse(core.getInput('params'));
 
-            console.log(`::add-mask::${params.ingrazzio_token}`)
-
             // Add workflow start time in milliseconds
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
+
+            if (params.ingrazzio_token_jwt) {
+              console.log('Decoding ingrazzio jwt token')
+              const payload = params.ingrazzio_token_jwt.split('.')[1];
+              
+              const decodedPayload = Buffer.from(payload, 'base64').toString('utf8');
+              params.ingrazzio_token = JSON.parse(decodedPayload).sub;
+            }
 
             const finalParams = { 
               junie_ide_version: '251',
@@ -282,11 +288,47 @@ jobs:
       #   run: |
       #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
+      - name: Fetch PR creation token
+        uses: actions/github-script@v7
+        id: pull-request-token
+        env:
+          INPUT_PARAMS: ${{ inputs.workflow_params }}
+        with:
+          script: |
+            const params = JSON.parse(core.getInput('params'));
+            const { run_id_token, api_base_url } = params;
+
+            if (!run_id_token || !api_base_url)  {
+              // TODO: remove after backend deployment
+              core.setOutput("pull_requests_creation_token", params.pull_requests_creation_token);
+              return;
+            };
+            const response = await fetch(`${api_base_url}/api/public/token/exchange`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                  runIdToken: run_id_token,
+                  tokens: ["PULL_REQUEST_CREATION"]
+                })
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const { PULL_REQUEST_CREATION } = await response.json();
+
+            core.setOutput("pull_requests_creation_token", PULL_REQUEST_CREATION);
+
+
       - name: Make Pull Request for the changes
         if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ steps.workflow-params.outputs.pull_requests_creation_token }}
+          token: ${{ steps.pull-request-token.outputs.pull_requests_creation_token }}
           commit-message: "${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
           title: "[Junie]: ${{ steps.junie_summary.outputs.name }}"
           body: |
