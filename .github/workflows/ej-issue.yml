@@ -137,7 +137,7 @@ jobs:
             export EJ_IDE_NAME="${{ inputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
-            sudo chmod +x ./junie.sh
+            chmod +x ./junie.sh
             /bin/sh ./junie.sh
       - name: Check if junie run failed
         if: failure() && (hashFiles('.devcontainer/devcontainer.json') != '')
@@ -212,7 +212,8 @@ jobs:
           export JUNIE_VERSION="${{  steps.workflow-params.outputs.junie_version }}"
           export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
-          chmod +x ./junie.sh && ./junie.sh
+          sudo chmod +x ./junie.sh
+          /bin/sh ./junie.sh
 
       - name: Extracting .idea and ej-logs for non-container run
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -303,7 +304,7 @@ jobs:
               core.setOutput("pull_requests_creation_token", params.pull_requests_creation_token);
               return;
             };
-            const response = await fetch(`${api_base_url}/api/public/token/exchange`, {
+            const response = await fetch(`${api_base_url}/token/exchange`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
