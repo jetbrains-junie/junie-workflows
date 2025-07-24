@@ -20,7 +20,6 @@ on:
 
 jobs:
   run-junie:
-    timeout-minutes: 180
     runs-on: ${{ inputs.runs-on }}
     permissions:
       contents: write
@@ -40,7 +39,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '206.1',
+              junie_version: '227.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
@@ -71,8 +70,7 @@ jobs:
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
-          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
+          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
         with:
@@ -82,7 +80,6 @@ jobs:
             EJ_AUTH_GITHUB_TOKEN  
             EJ_AUTH_INGRAZZIO_GITHUB_TOKEN
             EJ_TASK_TEXT
-            EJ_TASK_NAME
             MULTI_RUNS
             MATTERHORN_DEBUG_LOG
           runCmd: |
@@ -91,22 +88,42 @@ jobs:
             JUNIE_WORK_TEMP="/tmp/junie-work"
             echo "Junie working directory: $JUNIE_WORK_TEMP"
             
+            command_exists() {
+              command -v "$1" >/dev/null 2>&1
+            }
+            
+            echo "Installing IDEA dependencies"
+            
+            if [[ "$OSTYPE" == linux* ]]; then
+              if command_exists "apt-get"; then
+                sudo apt-get -qq update
+                sudo apt-get -qq install -y libfreetype6 fonts-liberation fontconfig
+              elif command_exists "pacman"; then
+                sudo pacman -Sy --noconfirm freetype2 ttf-liberation fontconfig
+              else
+                echo "Error: No supported package manager found (apt-get or pacman)"
+              fi
+            fi
+            
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
             export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
             export EJ_PROJECT=$(realpath ".")
-            
+
+            decoded_payload=$(echo "${{ steps.workflow-params.outputs.ingrazzio_token_jwt }}" | cut -d'.' -f2 | base64 -d)
+            export EJ_AUTH_INGRAZZIO_GITHUB_TOKEN=$(echo "$decoded_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+
             cd $JUNIE_WORK_TEMP
             echo "Downloading ej-runner"
             wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
             echo "Running ej-runner"
             
-            # Calculate time limit: 120 minutes minus time passed since workflow start
+            # Calculate time limit: 160 minutes minus time passed since workflow start
             current_time=$(date +%s%N | cut -b1-13)  # Get current time in milliseconds
             time_passed=$((current_time - ${{ steps.workflow-params.outputs.workflow_start_time }}))
-            export JUNIE_TIME_LIMIT=$((6600000 - time_passed))  # 6600000 = 110 minutes in milliseconds
+            export JUNIE_TIME_LIMIT=$((9600000 - time_passed))  # 9,600,000 = 160 minutes in milliseconds
             echo "Current time (ms): $current_time"
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
@@ -130,8 +147,25 @@ jobs:
           mkdir -p .junie-upload
 
           docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/" .junie-upload/.matterhorn/ || echo "No idea-logs"          
+          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
+
+          # rename containerError.md to executionError.md if main.log exists (aka execution took place)
+          LOG_FILE=".junie-upload/.matterhorn/.matterhorn/out/main.log"
+          CONTAINER_ERROR_FILE=".junie-upload/.matterhorn/out/containerError.md"
+          EXECUTION_ERROR_FILE=".junie-upload/.matterhorn/out/executionError.md"
+          
+          # Check if the log file exists
+          if [ -f "$LOG_FILE" ]; then
+            # Check if the error file exists before attempting to rename
+            if [ -f "$CONTAINER_ERROR_FILE" ]; then
+              # Rename the error file
+              mv "$CONTAINER_ERROR_FILE" "$EXECUTION_ERROR_FILE"
+              echo "Renamed $CONTAINER_ERROR_FILE to $EXECUTION_ERROR_FILE"
+            fi
+          else
+            echo "$LOG_FILE doesn't exist, assuming container error"
+          fi
 
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -139,21 +173,22 @@ jobs:
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
-          EJ_AUTH_INGRAZZIO_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.ingrazzio_token }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body }}
-          EJ_TASK_NAME: ${{ steps.workflow-params.outputs.issue_title }}
+          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
         run: |
           mkdir /tmp/junie-work
           JUNIE_WORK_TEMP="/tmp/junie-work"
           echo "Junie working directory: $JUNIE_WORK_TEMP"
- 
+          
           export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
           export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
           export EJ_PROJECT=$(realpath ".")
+
+          decoded_payload=$(echo "${{ steps.workflow-params.outputs.ingrazzio_token_jwt }}" | cut -d'.' -f2 | base64 -d)
+          export EJ_AUTH_INGRAZZIO_GITHUB_TOKEN=$(echo "$decoded_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
 
           cd $JUNIE_WORK_TEMP
           
@@ -161,10 +196,10 @@ jobs:
           sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{  steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
           echo "Running ej-runner"
-          # Calculate time limit: 120 minutes minus time passed since workflow start
+          # Calculate time limit: 160 minutes minus time passed since workflow start
           current_time=$(date +%s%N | cut -b1-13)  # Get current time in milliseconds
           time_passed=$((current_time - ${{ steps.workflow-params.outputs.workflow_start_time }}))
-          export JUNIE_TIME_LIMIT=$((6600000 - time_passed))  # 6600000 = 110 minutes in milliseconds
+          export JUNIE_TIME_LIMIT=$((9600000 - time_passed))  # 9,600,000 = 160 minutes in milliseconds
           echo "Current time (ms): $current_time"
           echo "Time passed since workflow start (ms): $time_passed"
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
@@ -173,7 +208,8 @@ jobs:
           export JUNIE_VERSION="${{  steps.workflow-params.outputs.junie_version }}"
           export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
-          sudo -E chmod +x ./junie.sh && ./junie.sh
+          sudo chmod +x ./junie.sh
+          /bin/sh ./junie.sh
 
       - name: Extracting .idea and ej-logs for non-container run
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -183,7 +219,7 @@ jobs:
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
           cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r /tmp/junie-work/idea-logs/log/ .junie-upload/.matterhorn/
+          cp -r /tmp/junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
 
       - name: Save junie result summary
         id: junie_summary
@@ -249,11 +285,47 @@ jobs:
       #   run: |
       #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
+      - name: Fetch PR creation token
+        uses: actions/github-script@v7
+        id: pull-request-token
+        env:
+          INPUT_PARAMS: ${{ inputs.workflow_params }}
+        with:
+          script: |
+            const params = JSON.parse(core.getInput('params'));
+            const { run_id_token, api_base_url } = params;
+
+            if (!run_id_token || !api_base_url)  {
+              // TODO: remove after backend deployment
+              core.setOutput("pull_requests_creation_token", params.pull_requests_creation_token);
+              return;
+            };
+            const response = await fetch(`${api_base_url}/token/exchange`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                  runIdToken: run_id_token,
+                  tokens: ["PULL_REQUEST_CREATION"]
+                })
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const { PULL_REQUEST_CREATION } = await response.json();
+
+            core.setOutput("pull_requests_creation_token", PULL_REQUEST_CREATION);
+
+
       - name: Make Pull Request for the changes
         if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ steps.workflow-params.outputs.pull_requests_creation_token }}
+          token: ${{ steps.pull-request-token.outputs.pull_requests_creation_token }}
           commit-message: "${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
           title: "[Junie]: ${{ steps.junie_summary.outputs.name }}"
           body: |
