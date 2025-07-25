@@ -1,3 +1,4 @@
+
 name: junie
 
 on:
@@ -17,6 +18,10 @@ on:
         type: string
         default: "IdeaUltimate"
         required: false
+    secrets:
+      JUNIE_SECRETS_JSON:
+        description: "JSON string containing secrets for the Junie agent"
+        required: false
 
 jobs:
   run-junie:
@@ -29,9 +34,17 @@ jobs:
         uses: actions/github-script@v7
         env:
           INPUT_PARAMS: ${{ inputs.workflow_params }}
+          JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
         with:
           script: |
             const params = JSON.parse(core.getInput('params'));
+            
+            if (process.env.JUNIE_SECRETS_JSON) {
+              const secrets = JSON.parse(process.env.JUNIE_SECRETS_JSON);
+              Object.values(secrets).forEach(value => {
+                console.log(`::add-mask::${value}`);
+              });
+            }
 
             // Add workflow start time in milliseconds
             const workflowStartTime = Date.now();
@@ -39,7 +52,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '227.1',
+              junie_version: '244.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
@@ -73,6 +86,7 @@ jobs:
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
+          JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
         with:
           push: never
           env: |
@@ -82,6 +96,7 @@ jobs:
             EJ_TASK_TEXT
             MULTI_RUNS
             MATTERHORN_DEBUG_LOG
+            JUNIE_SECRETS_JSON
           runCmd: |
             set -e
             mkdir /tmp/junie-work
@@ -176,6 +191,7 @@ jobs:
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: true
+          JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
         run: |
           mkdir /tmp/junie-work
           JUNIE_WORK_TEMP="/tmp/junie-work"
@@ -332,7 +348,7 @@ jobs:
             ## 📌 Hey! This PR was made for you with Junie, the coding agent by JetBrains **Early Access Preview**
 
             It's still learning, developing, and might make mistakes. Please make sure you review the changes before you accept them.
-            We’d love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/github).
+            We'd love your feedback — join our Discord to share bugs, ideas: [here](https://jb.gg/junie/github).
 
             - 🔗 **Issue:** Fixes: #${{ steps.workflow-params.outputs.issue_id }}
             - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}           
