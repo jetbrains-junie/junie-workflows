@@ -40,7 +40,30 @@ We provide a default devcontainer setup, but you might need to adjust it to suit
 
 To learn more about devcontainers, visit: https://containers.dev/overview.
 
+---
 
+## 🔐 Providing Secrets to Junie
+
+Junie can access secrets (like API keys) during execution through the `JUNIE_SECRETS_JSON` feature. This allows you to securely provide credentials that your code might need.
+
+### How to Set Up Secrets
+
+1. Go to your repository's **Settings**
+2. Navigate to **Secrets and variables > Actions**
+3. Click **New repository secret**
+4. Create a secret named `JUNIE_SECRETS_JSON`
+5. Set the value as a JSON string containing your secrets:
+   ```json
+   {"OPENAI_KEY":"your-api-key-here","ANOTHER_KEY":"another-value"}
+   ```
+
+### How It Works
+
+- The secrets from `JUNIE_SECRETS_JSON` become available as environment variables during Junie's execution
+- For example, if you provide `{"OPENAI_KEY":"sk-123"}`, Junie can access it as the `OPENAI_KEY` environment variable
+- All secret values are automatically masked in GitHub Actions logs for security
+
+> **Note:** This feature is automatically available if you use the Junie GitHub App. For manual setups, make sure to include the secrets configuration in your workflow file.
 
 ---
 
@@ -75,6 +98,8 @@ jobs:
     uses: jetbrains-junie/junie-workflows/.github/workflows/ej-issue.yml@main
     with:
       workflow_params: ${{ inputs.workflow_params }}
+    secrets:
+      JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
 ```
 
 </details>
