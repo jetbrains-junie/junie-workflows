@@ -98,6 +98,8 @@ jobs:
     uses: jetbrains-junie/junie-workflows/.github/workflows/ej-issue.yml@main
     with:
       workflow_params: ${{ inputs.workflow_params }}
+      runs-on: "ubuntu-latest"  # Optional: Specify which runner to use
+      junie_ide: "IdeaUltimate"  # Optional: Specify which IDE to use (IdeaUltimate or PhpStorm)
     secrets:
       JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
 ```

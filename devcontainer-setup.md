@@ -283,6 +283,8 @@ https://github.com/jetbrains-junie/example-kmp
 
 ## Scenario 5: PHP Development with Dependency Management
 
+If you have a fully PHP project, you can provide Junie with `junie_ide: PhpStorm` as a workflow parameter.[Example](https://github.com/jetbrains-junie/example-php/blob/main/.github/workflows/junie.yml)
+
 Use this configuration for PHP projects with automatic Composer dependency management.
 
 **File Structure:**
