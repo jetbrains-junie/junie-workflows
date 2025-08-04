@@ -116,6 +116,7 @@ jobs:
           echo "CONTAINER=$CONTAINER_ID"
 
           mkdir -p .junie-upload
+          ls -al
           docker exec "$CONTAINER_ID" ls -al /tmp/junie-work/
           docker exec "$CONTAINER_ID" ls -al /tmp/junie-work/.matterhorn
 
