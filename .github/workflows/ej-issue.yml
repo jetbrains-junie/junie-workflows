@@ -121,7 +121,7 @@ jobs:
           docker exec "$CONTAINER_ID" ls -al /tmp/junie-work/
           docker exec "$CONTAINER_ID" ls -al /tmp/junie-work/.matterhorn
 
-          docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" /home/runner/work/food-ordering-system/food-ordering-system/.junie-upload/.matterhorn
+          docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn/" .junie-upload/
           docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" /home/runner/work/food-ordering-system/food-ordering-system/.junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
