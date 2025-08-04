@@ -99,6 +99,7 @@ jobs:
             JUNIE_SECRETS_JSON
           runCmd: |
             set -e
+            df -h
             mkdir /tmp/junie-work
             JUNIE_WORK_TEMP="/tmp/junie-work"
             echo "Junie working directory: $JUNIE_WORK_TEMP"
@@ -160,6 +161,7 @@ jobs:
           echo "CONTAINER=$CONTAINER_ID"
 
           mkdir -p .junie-upload
+          docker exec "$CONTAINER_ID" ls -al /tmp/junie-work/
 
           docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
           docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
