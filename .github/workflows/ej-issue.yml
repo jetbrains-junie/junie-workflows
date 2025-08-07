@@ -85,7 +85,7 @@ jobs:
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
-          MATTERHORN_DEBUG_LOG: true
+          MATTERHORN_DEBUG_LOG: false
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
         with:
           push: never
@@ -199,7 +199,7 @@ jobs:
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
           EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
           MULTI_RUNS: true
-          MATTERHORN_DEBUG_LOG: true
+          MATTERHORN_DEBUG_LOG: false
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
         run: |
           mkdir /tmp/junie-work
@@ -280,8 +280,30 @@ jobs:
           path: .junie-upload/.matterhorn/out/attachments
           retention-days: 7
 
-      - name: Archive matterhorn directory
-        if: always()
+      - name: Upload junie logs
+        if: always() && steps.workflow-params.outputs.logs_storage == 'cloud'
+        continue-on-error: true
+        run: |
+          set -e
+          cd .junie-upload/
+          tar -cJf matterhorn-logs.tar.xz -C .matterhorn .
+
+          # Check file size
+          file_size=$(wc -c < matterhorn-logs.tar.xz)
+          if [ "$file_size" -gt 10485760 ]; then
+            echo "Archive too large, skipping upload"
+            exit 1
+          fi
+
+          echo "Uploading logs to API endpoint..."
+          curl -X POST "${{ steps.workflow-params.outputs.api_base_url }}/run/upload-logs" \
+            -H "Accept: application/json" \
+            -F "file=@matterhorn-logs.tar.xz" \
+            -F "token=${{ steps.workflow-params.outputs.run_id_token }}" \
+            --fail-with-body  --show-error
+
+      - name: Upload junie logs to GitHub
+        if: always() && steps.workflow-params.outputs.logs_storage != 'cloud'
         uses: actions/upload-artifact@v4
         with:
           name: matterhorn-logs
@@ -310,40 +332,15 @@ jobs:
       #   run: |
       #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
 
+      # exchange runner token to PR creation token and put it to step output
       - name: Fetch PR creation token
-        uses: actions/github-script@v7
         id: pull-request-token
-        env:
-          INPUT_PARAMS: ${{ inputs.workflow_params }}
-        with:
-          script: |
-            const params = JSON.parse(core.getInput('params'));
-            const { run_id_token, api_base_url } = params;
-
-            if (!run_id_token || !api_base_url)  {
-              // TODO: remove after backend deployment
-              core.setOutput("pull_requests_creation_token", params.pull_requests_creation_token);
-              return;
-            };
-            const response = await fetch(`${api_base_url}/token/exchange`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({
-                  runIdToken: run_id_token,
-                  tokens: ["PULL_REQUEST_CREATION"]
-                })
-            });
-
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const { PULL_REQUEST_CREATION } = await response.json();
-
-            core.setOutput("pull_requests_creation_token", PULL_REQUEST_CREATION);
+        run: |
+          echo "pull_requests_creation_token=$(curl -s -X POST "${{ steps.workflow-params.outputs.api_base_url }}/token/exchange" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"runIdToken\":\"${{ steps.workflow-params.outputs.run_id_token }}\",\"tokens\":[\"PULL_REQUEST_CREATION\"]}" \
+            | jq -r '.PULL_REQUEST_CREATION')" >> $GITHUB_OUTPUT
 
 
       - name: Make Pull Request for the changes
