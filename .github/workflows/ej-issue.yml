@@ -119,6 +119,15 @@ jobs:
                 echo "Error: No supported package manager found (apt-get or pacman)"
               fi
             fi
+
+            if [ -n "$JUNIE_SECRETS_JSON" ]; then
+              echo "$JUNIE_SECRETS_JSON" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS= read -r line; do
+                if [ -n "$line" ]; then
+                  export "$line"
+                fi
+              done
+              echo "Loaded environment variables from JUNIE_SECRETS_JSON"
+            fi
   
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
