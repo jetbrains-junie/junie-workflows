@@ -79,9 +79,7 @@ name: Junie
 run-name: Junie run ${{ inputs.run_id }}
 
 permissions:
-  contents: write
   pull-requests: write
-  packages: read
 
 on:
   workflow_dispatch:
@@ -101,7 +99,7 @@ jobs:
       runs-on: "ubuntu-latest"  # Optional: Specify which runner to use
       junie_ide: "IdeaUltimate"  # Optional: Specify which IDE to use (IdeaUltimate or PhpStorm)
     secrets:
-      JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
+      JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }} # Optional: Specify if your app requires some tokens for build or run tests. Put it into a JSON object when `key` is the name in the env and `value` is secret
 ```
 
 </details>
