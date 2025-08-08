@@ -18,6 +18,11 @@ on:
         type: string
         default: "IdeaUltimate"
         required: false
+      fix_conflicts:
+        description: "allow Junie to auto resolve PR conflicts"
+        default: false
+        type: boolean
+        required: false
     secrets:
       JUNIE_SECRETS_JSON:
         description: "JSON string containing secrets for the Junie agent"
