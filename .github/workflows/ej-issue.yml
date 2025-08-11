@@ -155,13 +155,13 @@ jobs:
             mkdir /tmp/junie-work
             JUNIE_WORK_TEMP="/tmp/junie-work"
             echo "Junie working directory: $JUNIE_WORK_TEMP"
-            
+
             command_exists() {
               command -v "$1" >/dev/null 2>&1
             }
-            
+
             echo "Installing IDEA dependencies"
-            
+
             if [[ "$OSTYPE" == linux* ]]; then
               if command_exists "apt-get"; then
                 sudo apt-get -qq update
@@ -181,7 +181,6 @@ jobs:
               done
               echo "Loaded environment variables from JUNIE_SECRETS_JSON"
             fi
-            
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
@@ -196,7 +195,7 @@ jobs:
             wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
             echo "Running ej-runner"
-            
+
             # Calculate time limit: 120 minutes minus time passed since workflow start
             current_time=$(date +%s%N | cut -b1-13)  # Get current time in milliseconds
             time_passed=$((current_time - ${{ steps.workflow-params.outputs.workflow_start_time }}))
@@ -204,7 +203,7 @@ jobs:
             echo "Current time (ms): $current_time"
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
-            
+
             export EJ_IDE_NAME="${{ steps.workflow-params.outputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
