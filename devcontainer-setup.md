@@ -144,7 +144,7 @@ CMD ["sleep", "infinity"]
   (the same place as devcontainers use by default) in `devcontainer.json`
 * Junie GitHub app uses some external tools, so it's recommended to use a devcontainer-ready
   image such as `mcr.microsoft.com/devcontainers/base:ubuntu` instead of simple `ubuntu` image. In the latter case, ensure you
-  have `git`, `wget` and `sudo` installed
+  have `git`, `wget`, `zip`, `unzip`, and `sudo` installed
 
 **Sample repository**:
 
