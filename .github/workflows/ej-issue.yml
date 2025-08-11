@@ -22,11 +22,6 @@ on:
         default: false
         type: boolean
         required: false
-      trial:
-        description: "Whether to use trial version"
-        type: boolean
-        default: false
-        required: false
     secrets:
       JUNIE_SECRETS_JSON:
         description: "JSON string containing secrets for the Junie agent"
@@ -48,7 +43,6 @@ jobs:
           TRIAL_PARAM: ${{ inputs.trial }}
         with:
           script: |
-
             const params = JSON.parse(core.getInput('params'));
             if (process.env.JUNIE_SECRETS_JSON) {
               const secrets = JSON.parse(process.env.JUNIE_SECRETS_JSON);
@@ -60,17 +54,6 @@ jobs:
             // Add workflow start time in milliseconds
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
-
-            // Define Junie versions
-            const junie_trial = '280.1';
-            const junie_eap = '275.1';
-
-            const trialInput = process.env.TRIAL_PARAM || 'false';
-            const isTrial = trialInput.toLowerCase() === 'true';
-
-            const junie_version = isTrial ? junie_trial : junie_eap;
-            console.log('Junie version:', junie_version);
-
             const finalParams = { 
               junie_ide_version: '251',
               junie_version: '403.1',
@@ -343,30 +326,8 @@ jobs:
           path: .junie-upload/.matterhorn/out/attachments
           retention-days: 7
 
-      - name: Upload junie logs
-        if: always() && steps.workflow-params.outputs.logs_storage == 'cloud'
-        continue-on-error: true
-        run: |
-          set -e
-          cd .junie-upload/
-          tar -cJf matterhorn-logs.tar.xz -C .matterhorn .
-
-          # Check file size
-          file_size=$(wc -c < matterhorn-logs.tar.xz)
-          if [ "$file_size" -gt 10485760 ]; then
-            echo "Archive too large, skipping upload"
-            exit 1
-          fi
-
-          echo "Uploading logs to API endpoint..."
-          curl -X POST "${{ steps.workflow-params.outputs.api_base_url }}/run/upload-logs" \
-            -H "Accept: application/json" \
-            -F "file=@matterhorn-logs.tar.xz" \
-            -F "token=${{ steps.workflow-params.outputs.run_id_token }}" \
-            --fail-with-body  --show-error
-
       - name: Upload junie logs to GitHub
-        if: always() && steps.workflow-params.outputs.logs_storage != 'cloud'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: matterhorn-logs
