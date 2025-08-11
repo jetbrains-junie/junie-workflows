@@ -47,6 +47,7 @@ jobs:
         with:
           script: |
             const params = JSON.parse(core.getInput('params'));
+            console.log('Params:', JSON.stringify(params, null, 2));
 
             if (process.env.JUNIE_SECRETS_JSON) {
               const secrets = JSON.parse(process.env.JUNIE_SECRETS_JSON);
@@ -66,12 +67,18 @@ jobs:
             // Set junie_version based on trial parameter
             let isTrial = false;
             try {
-              isTrial = core.getBooleanInput('trial');
+              // Try to get the trial parameter as a string first
+              const trialInput = core.getInput('trial');
+              console.log('Trial input value:', trialInput);
+
+              // Convert the string to a boolean manually
+              isTrial = trialInput === 'true' || trialInput === 'True' || trialInput === 'TRUE';
             } catch (error) {
               console.log('Error getting trial parameter:', error.message);
               // Default to false if there's an error
               isTrial = false;
             }
+            console.log('Using trial version:', isTrial);
             const junie_version = isTrial ? junie_trial : junie_eap;
 
             const finalParams = { 
