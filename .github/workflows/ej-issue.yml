@@ -65,9 +65,30 @@ jobs:
             const junie_eap = '275.1';
 
             // Set junie_version based on trial parameter
-            const isTrial = core.getBooleanInput('trial');
-            const junie_version = isTrial ? junie_trial : junie_eap;
+            let isTrial = false;
+            try {
+              // Try to get the trial parameter as a string first
+              const trialInput = core.getInput('trial');
+              console.log('Trial input value:', trialInput);
 
+              // Pretty print core object for debugging
+              console.log('Core object:', JSON.stringify({
+                inputs: process.env,
+                inputNames: Object.keys(process.env).filter(key => key.startsWith('INPUT_')),
+                trialEnvVar: process.env.INPUT_TRIAL
+              }, null, 2));
+
+              // Convert the string to a boolean manually
+              isTrial = trialInput === 'true' || trialInput === 'True' || trialInput === 'TRUE';
+            } catch (error) {
+              console.log('Error getting trial parameter:', error.message);
+              // Default to false if there's an error
+              isTrial = false;
+            }
+            console.log('Using trial version:', isTrial);
+            const junie_version = isTrial ? junie_trial : junie_eap;
+            console.log('Junie version:', junie_version);
+            
             const finalParams = { 
               junie_ide_version: '251',
               junie_version: '403.1',
