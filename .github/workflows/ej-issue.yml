@@ -38,10 +38,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Debug inputs
-        run: |
-          echo "Input trial value: ${{ inputs.trial }}"
-
       - name: Extract workflow params
         id: workflow-params
         uses: actions/github-script@v7
@@ -51,8 +47,8 @@ jobs:
           TRIAL_PARAM: ${{ inputs.trial }}
         with:
           script: |
+
             const params = JSON.parse(core.getInput('params'));
-            console.log('Params:', JSON.stringify(params, null, 2));
 
             if (process.env.JUNIE_SECRETS_JSON) {
               const secrets = JSON.parse(process.env.JUNIE_SECRETS_JSON);
@@ -69,24 +65,9 @@ jobs:
             const junie_trial = '280.1';
             const junie_eap = '275.1';
 
-            // Set junie_version based on trial parameter
-            let isTrial = false;
-            try {
-              // Get the trial parameter directly from environment variable
-              const trialInput = process.env.TRIAL_PARAM;
-              console.log('Trial input value from env:', trialInput);
+            const trialInput = process.env.TRIAL_PARAM || 'false';
+            const isTrial = trialInput.toLowerCase() === 'true';
 
-              // Log all environment variables for debugging
-              console.log('All environment variables:', Object.keys(process.env).join(', '));
-
-              // Convert the string to a boolean manually
-              isTrial = trialInput === 'true' || trialInput === 'True' || trialInput === 'TRUE';
-            } catch (error) {
-              console.log('Error getting trial parameter:', error.message);
-              // Default to false if there's an error
-              isTrial = false;
-            }
-            console.log('Using trial version:', isTrial);
             const junie_version = isTrial ? junie_trial : junie_eap;
             console.log('Junie version:', junie_version);
 
