@@ -60,7 +60,7 @@ jobs:
             console.log('Workflow start time (ms):', workflowStartTime);
 
             // Define Junie versions
-            const junie_trial = '275.1';
+            const junie_trial = '280.1';
             const junie_eap = '275.1';
 
             // Set junie_version based on trial parameter
