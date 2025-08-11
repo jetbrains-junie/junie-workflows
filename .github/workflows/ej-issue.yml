@@ -22,6 +22,11 @@ on:
         default: false
         type: boolean
         required: false
+      trial:
+        description: "Whether to use trial version"
+        type: boolean
+        default: false
+        required: false
     secrets:
       JUNIE_SECRETS_JSON:
         description: "JSON string containing secrets for the Junie agent"
@@ -53,6 +58,14 @@ jobs:
             // Add workflow start time in milliseconds
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
+
+            // Define Junie versions
+            const junie_trial = '275.1';
+            const junie_eap = '275.1';
+
+            // Set junie_version based on trial parameter
+            const isTrial = core.getBooleanInput('trial');
+            const junie_version = isTrial ? junie_trial : junie_eap;
 
             const finalParams = { 
               junie_ide_version: '251',
@@ -218,7 +231,7 @@ jobs:
           LOG_FILE=".junie-upload/.matterhorn/.matterhorn/out/main.log"
           CONTAINER_ERROR_FILE=".junie-upload/.matterhorn/out/containerError.md"
           EXECUTION_ERROR_FILE=".junie-upload/.matterhorn/out/executionError.md"
-          
+
           # Check if the log file exists
           if [ -f "$LOG_FILE" ]; then
             # Check if the error file exists before attempting to rename
@@ -245,7 +258,6 @@ jobs:
           mkdir /tmp/junie-work
           JUNIE_WORK_TEMP="/tmp/junie-work"
           echo "Junie working directory: $JUNIE_WORK_TEMP"
-          
           export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
@@ -256,7 +268,7 @@ jobs:
           export EJ_AUTH_INGRAZZIO_GITHUB_TOKEN=$(echo "$decoded_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
 
           cd $JUNIE_WORK_TEMP
-          
+
           echo "Downloading ej-runner"
           sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{  steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
