@@ -71,6 +71,13 @@ jobs:
               const trialInput = core.getInput('trial');
               console.log('Trial input value:', trialInput);
 
+              // Pretty print core object for debugging
+              console.log('Core object:', JSON.stringify({
+                inputs: process.env,
+                inputNames: Object.keys(process.env).filter(key => key.startsWith('INPUT_')),
+                trialEnvVar: process.env.INPUT_TRIAL
+              }, null, 2));
+
               // Convert the string to a boolean manually
               isTrial = trialInput === 'true' || trialInput === 'True' || trialInput === 'TRUE';
             } catch (error) {
@@ -80,7 +87,8 @@ jobs:
             }
             console.log('Using trial version:', isTrial);
             const junie_version = isTrial ? junie_trial : junie_eap;
-
+            console.log('Junie version:', junie_version);
+            
             const finalParams = { 
               junie_ide_version: '251',
               junie_version: '297.1',
