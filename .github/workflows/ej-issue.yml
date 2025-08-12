@@ -54,7 +54,7 @@ jobs:
             console.log('Workflow start time (ms):', workflowStartTime);
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '275.1',
+              junie_version: '283.1,',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
