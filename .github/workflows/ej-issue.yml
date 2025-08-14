@@ -56,7 +56,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '285.1',
+              junie_version: '288.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
@@ -283,9 +283,11 @@ jobs:
         run: |
           summary=$(jq -r '.content.output | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
           echo "summary is $summary"
-          echo "summary<<EOF" >> $GITHUB_OUTPUT
-          echo "$summary" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "summary<<EOF"
+            echo "$summary"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           name=$(jq -r '.content.title | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
           echo "name is $name, fallback is ${{ steps.workflow-params.outputs.fallback_result_title }}"
@@ -382,7 +384,7 @@ jobs:
 
       - name: Make Pull Request for the changes
         if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.pull-request-token.outputs.pull_requests_creation_token }}
           commit-message: "${{ steps.junie_summary.outputs.name }} \n ${{ steps.junie_summary.outputs.summary }}"
