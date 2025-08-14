@@ -1,4 +1,3 @@
-
 name: junie
 
 on:
@@ -57,11 +56,11 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '275.1',
+              junie_version: '285.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
-            
+    
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
             });
@@ -71,6 +70,26 @@ jobs:
         with:
           ref: ${{ steps.workflow-params.outputs.checkout_ref }}
 
+      - name: Fetch refs for resolve conflicts
+        id: merge
+        if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
+        env:
+          TASK_JSON: ${{ steps.workflow-params.outputs.task }}
+        run: |
+          target_pr_branch="$(jq -r 'try .merge.branch // empty' <<<"${TASK_JSON:-}" 2>/dev/null || true)"
+          if [[ -n "$target_pr_branch" ]]; then
+            echo "fetching $target_pr_branch and checkout refs"
+            # we don't want to fetch whole repo, but need to fetch enough history to find least ancestor
+            since=$(date --date="1 week ago" --iso-8601)
+            git fetch origin --shallow-since="$since" $target_pr_branch || true
+            git fetch origin --shallow-since="$since" ${{ steps.workflow-params.outputs.checkout_ref }}           
+            git branch $target_pr_branch origin/$target_pr_branch
+          else
+            echo "No target PR branch; skipping fetch/checkout."
+          fi
+        
+      # need to sync with step run_junie_in_container
+      # ~/.gitconfig in container will be isolated from agent environment
       - name: Init git configuration
         run: |
           git config --global user.name 'junie-eap[bot]'
@@ -160,13 +179,20 @@ jobs:
             export EJ_IDE_NAME="${{ inputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
-            chmod +x ./junie.sh
+            # GH agent git settings with devcontainer environment for resolve conflicts tasks
+            git config --global user.name 'junie-eap[bot]'
+            git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
+
+            chmod +x ./junie.sh 
             /bin/sh ./junie.sh
+            
+            
       - name: Check if junie run failed
         if: failure() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
           mkdir -p .junie-upload/.matterhorn/out/
           echo "${{ steps.run_junie_in_container.outputs.runCmdOutput }}" >> .junie-upload/.matterhorn/out/containerError.md
+  
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
@@ -262,8 +288,8 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
           name=$(jq -r '.content.title | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
-          echo "name is $name"
-          name=${name:-"Improvement from Junie"}
+          echo "name is $name, fallback is ${{ steps.workflow-params.outputs.fallback_result_title }}"
+          name=${name:-"${{ steps.workflow-params.outputs.fallback_result_title }}"}
           echo "name=$name" >> "$GITHUB_OUTPUT" 
 
       - name: Archive output
@@ -331,21 +357,27 @@ jobs:
             sudo rm -rf .idea
           fi
 
-      # Uncomment when we support auto resolve conflicts
-      # - name: Reset git changes from junie
-      #   if: always()
-      #   run: |
-      #      git reset origin/${{ steps.workflow-params.outputs.checkout_ref }}
-
-      # exchange runner token to PR creation token and put it to step output
       - name: Fetch PR creation token
         id: pull-request-token
         run: |
-          echo "pull_requests_creation_token=$(curl -s -X POST "${{ steps.workflow-params.outputs.api_base_url }}/token/exchange" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            -d "{\"runIdToken\":\"${{ steps.workflow-params.outputs.run_id_token }}\",\"tokens\":[\"PULL_REQUEST_CREATION\"]}" \
-            | jq -r '.PULL_REQUEST_CREATION')" >> $GITHUB_OUTPUT
+          response_and_status="$(
+            curl -s -w "\n%{http_code}" -X POST "${{ steps.workflow-params.outputs.api_base_url }}/token/exchange" \
+              -H "Content-Type: application/json" \
+              -H "Accept: application/json" \
+              -d "{\"runIdToken\":\"${{ steps.workflow-params.outputs.run_id_token }}\",\"tokens\":[\"PULL_REQUEST_CREATION\"]}"
+          )"
+
+          status=$(echo "$response_and_status" | tail -n1)
+          body=$(echo "$response_and_status" | head -n -1)
+
+          echo "HTTP status: $status"
+
+          if echo "$body" | jq -e . >/dev/null 2>&1; then
+            value=$(echo "$body" | jq -r '.PULL_REQUEST_CREATION')
+            echo "pull_requests_creation_token=$value" >> "$GITHUB_OUTPUT"
+          else
+            echo "Non-JSON response body: $body"
+          fi
 
 
       - name: Make Pull Request for the changes
@@ -364,8 +396,7 @@ jobs:
             - 🔗 **Issue:** Fixes: #${{ steps.workflow-params.outputs.issue_id }}
             - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}           
 
-            ### 📊 Junie Summary
-            ${{ steps.junie_summary.outputs.summary }}
+            ${{ steps.junie_summary.outputs.summary != '' && format('### 📊 Junie Summary\n{0}', steps.junie_summary.outputs.summary) }}
           branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
