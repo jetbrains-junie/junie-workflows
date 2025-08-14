@@ -103,7 +103,7 @@ jobs:
         id: run_junie_in_container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         uses: devcontainers/ci@v0.3
-        timeout-minutes: 50
+        timeout-minutes: 120
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
@@ -168,10 +168,10 @@ jobs:
 
             echo "Running ej-runner"
             
-            # Calculate time limit: 60 minutes minus time passed since workflow start
+            # Calculate time limit: 120 minutes minus time passed since workflow start
             current_time=$(date +%s%N | cut -b1-13)  # Get current time in milliseconds
             time_passed=$((current_time - ${{ steps.workflow-params.outputs.workflow_start_time }}))
-            export JUNIE_TIME_LIMIT=$((3300000 - time_passed))  # 3300000 = 55 minutes in milliseconds
+            export JUNIE_TIME_LIMIT=$((6600000 - time_passed))  # 6600000 = 110 minutes in milliseconds
             echo "Current time (ms): $current_time"
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
@@ -224,7 +224,7 @@ jobs:
 
       - name: Run Junie without container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
-        timeout-minutes: 50
+        timeout-minutes: 120
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
@@ -252,10 +252,10 @@ jobs:
           sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{  steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
           echo "Running ej-runner"
-          # Calculate time limit: 60 minutes minus time passed since workflow start
+          # Calculate time limit: 120 minutes minus time passed since workflow start
           current_time=$(date +%s%N | cut -b1-13)  # Get current time in milliseconds
           time_passed=$((current_time - ${{ steps.workflow-params.outputs.workflow_start_time }}))
-          export JUNIE_TIME_LIMIT=$((3300000 - time_passed))  # 3300000 = 55 minutes in milliseconds
+          export JUNIE_TIME_LIMIT=$((6600000 - time_passed))  # 6600000 = 110 minutes in milliseconds
           echo "Current time (ms): $current_time"
           echo "Time passed since workflow start (ms): $time_passed"
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
