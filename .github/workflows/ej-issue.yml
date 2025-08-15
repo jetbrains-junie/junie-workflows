@@ -80,7 +80,7 @@ jobs:
           if [[ -n "$target_pr_branch" ]]; then
             echo "fetching $target_pr_branch and checkout refs"
             # we don't want to fetch whole repo, but need to fetch enough history to find least ancestor
-            since=$(date --date="1 week ago" --iso-8601)
+            since=$(date --date="2 week ago" --iso-8601)
             git fetch origin --shallow-since="$since" $target_pr_branch || true
             git fetch origin --shallow-since="$since" ${{ steps.workflow-params.outputs.checkout_ref }}           
             git branch $target_pr_branch origin/$target_pr_branch
