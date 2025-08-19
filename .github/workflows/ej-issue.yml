@@ -60,7 +60,7 @@ jobs:
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
-    
+            
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
             });
@@ -87,13 +87,14 @@ jobs:
           else
             echo "No target PR branch; skipping fetch/checkout."
           fi
-        
+
       # need to sync with step run_junie_in_container
       # ~/.gitconfig in container will be isolated from agent environment
       - name: Init git configuration
         run: |
           git config --global user.name 'junie-eap[bot]'
           git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
+          git config --global http.postBuffer 157286400
 
       - name: Make all scripts in .devcontainer executable
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
@@ -152,7 +153,7 @@ jobs:
               done
               echo "Loaded environment variables from JUNIE_SECRETS_JSON"
             fi
-  
+            
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
@@ -185,14 +186,14 @@ jobs:
 
             chmod +x ./junie.sh 
             /bin/sh ./junie.sh
-            
-            
+
+
       - name: Check if junie run failed
         if: failure() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
           mkdir -p .junie-upload/.matterhorn/out/
           echo "${{ steps.run_junie_in_container.outputs.runCmdOutput }}" >> .junie-upload/.matterhorn/out/containerError.md
-  
+
       - name: Extracting .idea and ej-logs from container
         if: always() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
@@ -236,7 +237,7 @@ jobs:
           mkdir /tmp/junie-work
           JUNIE_WORK_TEMP="/tmp/junie-work"
           echo "Junie working directory: $JUNIE_WORK_TEMP"
- 
+          
           export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
