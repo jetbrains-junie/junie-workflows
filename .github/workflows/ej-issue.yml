@@ -72,18 +72,22 @@ jobs:
 
       - name: Fetch refs for resolve conflicts
         id: merge
-        if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
+        if: steps.workflow-params.outputs.merge_base_commit_sha != ''
         env:
           TASK_JSON: ${{ steps.workflow-params.outputs.task }}
         run: |
-          target_pr_branch="$(jq -r 'try .merge.branch // empty' <<<"${TASK_JSON:-}" 2>/dev/null || true)"
-          if [[ -n "$target_pr_branch" ]]; then
-            echo "fetching $target_pr_branch and checkout refs"
-            # we don't want to fetch whole repo, but need to fetch enough history to find least ancestor
-            since=$(date --date="2 week ago" --iso-8601)
-            git fetch origin --shallow-since="$since" $target_pr_branch || true
-            git fetch origin --shallow-since="$since" ${{ steps.workflow-params.outputs.checkout_ref }}           
-            git branch $target_pr_branch origin/$target_pr_branch
+          BASE="$(jq -r 'try .merge.branch // empty' <<<"${TASK_JSON:-}" 2>/dev/null || true)"          
+          if [[ -n "$BASE" ]]; then
+            HEAD=${{ steps.workflow-params.outputs.checkout_ref }}
+            MB="${{ steps.workflow-params.outputs.merge_base_commit_sha }}"
+            git fetch --no-tags --depth=1 origin "$BASE" "$HEAD"
+            git fetch --no-tags --depth=1 origin "$MB"
+            CUTOFF=$(git show -s --format=%cI $MB | xargs -I{} date -u -d "{} - 10 seconds" +"%Y-%m-%dT%H:%M:%SZ")
+            PARENTS=$(git cat-file -p $MB | awk '/^parent / {print $2}')
+            for p in $PARENTS; do
+              git fetch --shallow-since="$CUTOFF" origin "$BASE" "$HEAD"
+            done     
+            git branch $BASE origin/$BASE
           else
             echo "No target PR branch; skipping fetch/checkout."
           fi
