@@ -60,6 +60,10 @@ jobs:
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
+
+            if (finalParams.issue_body) {
+              finalParams.ej_task_text =  `### ${finalParams.issue_title}` + '\n' + `${finalParams.issue_body}`;
+            }
             
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
@@ -112,7 +116,7 @@ jobs:
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
+          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.ej_task_text }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: false
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
@@ -233,7 +237,7 @@ jobs:
         env:
           EJ_TASK: ${{ steps.workflow-params.outputs.task }}
           EJ_AUTH_GITHUB_TOKEN: ${{ steps.workflow-params.outputs.junie_runner_token  }}
-          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.issue_body && format('### {0}\n{1}', steps.workflow-params.outputs.issue_title, steps.workflow-params.outputs.issue_body) || '' }}
+          EJ_TASK_TEXT: ${{ steps.workflow-params.outputs.ej_task_text }}
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: false
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
@@ -403,7 +407,8 @@ jobs:
             - 🔗 **Issue:** Fixes: #${{ steps.workflow-params.outputs.issue_id }}
             - ⚙️ **Trigger:** ${{ steps.workflow-params.outputs.trigger }}           
 
-            ${{ steps.junie_summary.outputs.summary != '' && format('### 📊 Junie Summary\n{0}', steps.junie_summary.outputs.summary) }}
+            ${{ steps.junie_summary.outputs.summary != '' && '### 📊 Junie Summary' }}
+            ${{ steps.junie_summary.outputs.summary != '' && steps.junie_summary.outputs.summary }}
           branch: ${{ steps.workflow-params.outputs.target_ref }}
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
