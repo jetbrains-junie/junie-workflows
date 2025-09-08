@@ -26,7 +26,7 @@ Simply install the [Junie GitHub App](https://github.com/apps/jetbrains-junie) â
 
 Once installed, Junie will automatically:
 
-- Create a Pull Request with the required workflow file (`.github/workflows/ej-issue.yml`)
+- Create a Pull Request with the required workflow file (`.github/workflows/junie.yml`)
 - Add a `devcontainer.json` file to your repository to support containerized environments
 
 > Junie is currently in closed Early Access.  
