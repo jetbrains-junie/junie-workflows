@@ -178,7 +178,7 @@ jobs:
 
             cd $JUNIE_WORK_TEMP
             echo "Downloading ej-runner"
-            wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
+            wget -nv "https://github.com/jetbrains-junie/junie/releases/download/313.1/junie-cloud-business-251.313.1-linux-amd64.zip/junie.sh" -O junie.sh
 
             echo "Running ej-runner"
 
