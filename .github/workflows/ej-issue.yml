@@ -54,7 +54,7 @@ jobs:
             console.log('Workflow start time (ms):', workflowStartTime);
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '313.1',
+              junie_version: '355.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
@@ -184,6 +184,7 @@ jobs:
             export EJ_IDE_NAME="${{ inputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+            export JUNIE_TYPE="business"
             # GH agent git settings with devcontainer environment for resolve conflicts tasks
             git config --global user.name 'junie-eap[bot]'
             git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
