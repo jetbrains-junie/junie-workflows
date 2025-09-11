@@ -252,7 +252,7 @@ jobs:
 
           cd $JUNIE_WORK_TEMP
           echo "Downloading ej-runner"
-          sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{  steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
+          wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{  steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
           echo "Running ej-runner"
           # Calculate time limit: 120 minutes minus time passed since workflow start
