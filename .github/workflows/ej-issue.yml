@@ -243,6 +243,7 @@ jobs:
           JUNIE_WORK_TEMP="/tmp/junie-work"
           echo "Junie working directory: $JUNIE_WORK_TEMP"
           export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
+          export JUNIE_TYPE="business"
           export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
           export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
