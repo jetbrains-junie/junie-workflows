@@ -42,7 +42,6 @@ jobs:
         with:
           script: |
             const params = JSON.parse(core.getInput('params'));
-            
             if (process.env.JUNIE_SECRETS_JSON) {
               const secrets = JSON.parse(process.env.JUNIE_SECRETS_JSON);
               Object.values(secrets).forEach(value => {
@@ -53,14 +52,12 @@ jobs:
             // Add workflow start time in milliseconds
             const workflowStartTime = Date.now();
             console.log('Workflow start time (ms):', workflowStartTime);
-
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '297.1',
+              junie_version: '355.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
-
             if (finalParams.issue_body) {
               finalParams.ej_task_text =  `### ${finalParams.issue_title}` + '\n' + `${finalParams.issue_body}`;
             }
@@ -135,13 +132,13 @@ jobs:
             mkdir /tmp/junie-work
             JUNIE_WORK_TEMP="/tmp/junie-work"
             echo "Junie working directory: $JUNIE_WORK_TEMP"
-            
+
             command_exists() {
               command -v "$1" >/dev/null 2>&1
             }
-            
+
             echo "Installing IDEA dependencies"
-            
+
             if [[ "$OSTYPE" == linux* ]]; then
               if command_exists "apt-get"; then
                 sudo apt-get -qq update
@@ -161,7 +158,6 @@ jobs:
               done
               echo "Loaded environment variables from JUNIE_SECRETS_JSON"
             fi
-            
             export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
             export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
@@ -176,7 +172,7 @@ jobs:
             wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{ steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
             echo "Running ej-runner"
-            
+
             # Calculate time limit: 120 minutes minus time passed since workflow start
             current_time=$(date +%s%N | cut -b1-13)  # Get current time in milliseconds
             time_passed=$((current_time - ${{ steps.workflow-params.outputs.workflow_start_time }}))
@@ -184,10 +180,11 @@ jobs:
             echo "Current time (ms): $current_time"
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
-            
+
             export EJ_IDE_NAME="${{ inputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+            export JUNIE_TYPE="business"
             # GH agent git settings with devcontainer environment for resolve conflicts tasks
             git config --global user.name 'junie-eap[bot]'
             git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
@@ -218,7 +215,7 @@ jobs:
           LOG_FILE=".junie-upload/.matterhorn/.matterhorn/out/main.log"
           CONTAINER_ERROR_FILE=".junie-upload/.matterhorn/out/containerError.md"
           EXECUTION_ERROR_FILE=".junie-upload/.matterhorn/out/executionError.md"
-          
+
           # Check if the log file exists
           if [ -f "$LOG_FILE" ]; then
             # Check if the error file exists before attempting to rename
@@ -245,8 +242,8 @@ jobs:
           mkdir /tmp/junie-work
           JUNIE_WORK_TEMP="/tmp/junie-work"
           echo "Junie working directory: $JUNIE_WORK_TEMP"
-          
           export EJ_FOLDER_WORK=$JUNIE_WORK_TEMP
+          export JUNIE_TYPE="business"
           export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
           export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
@@ -256,7 +253,6 @@ jobs:
           export EJ_AUTH_INGRAZZIO_GITHUB_TOKEN=$(echo "$decoded_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
 
           cd $JUNIE_WORK_TEMP
-          
           echo "Downloading ej-runner"
           sudo wget -nv "https://github.com/jetbrains-junie/artifacts/releases/download/${{  steps.workflow-params.outputs.junie_version }}/junie.sh" -O junie.sh
 
@@ -322,30 +318,8 @@ jobs:
           path: .junie-upload/.matterhorn/out/attachments
           retention-days: 7
 
-      - name: Upload junie logs
-        if: always() && steps.workflow-params.outputs.logs_storage == 'cloud'
-        continue-on-error: true
-        run: |
-          set -e
-          cd .junie-upload/
-          tar -cJf matterhorn-logs.tar.xz -C .matterhorn .
-
-          # Check file size
-          file_size=$(wc -c < matterhorn-logs.tar.xz)
-          if [ "$file_size" -gt 10485760 ]; then
-            echo "Archive too large, skipping upload"
-            exit 1
-          fi
-
-          echo "Uploading logs to API endpoint..."
-          curl -X POST "${{ steps.workflow-params.outputs.api_base_url }}/run/upload-logs" \
-            -H "Accept: application/json" \
-            -F "file=@matterhorn-logs.tar.xz" \
-            -F "token=${{ steps.workflow-params.outputs.run_id_token }}" \
-            --fail-with-body  --show-error
-
       - name: Upload junie logs to GitHub
-        if: always() && steps.workflow-params.outputs.logs_storage != 'cloud'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: matterhorn-logs
