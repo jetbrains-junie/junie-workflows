@@ -39,6 +39,7 @@ jobs:
         env:
           INPUT_PARAMS: ${{ inputs.workflow_params }}
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
+          JUNIE_IDEA: ${{ inputs.junie_ide }}
         with:
           script: |
             const params = JSON.parse(core.getInput('params'));
@@ -56,7 +57,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '297.1',
+              junie_version: '365.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
@@ -64,6 +65,12 @@ jobs:
             if (finalParams.issue_body) {
               finalParams.ej_task_text =  `### ${finalParams.issue_title}` + '\n' + `${finalParams.issue_body}`;
             }
+
+            if (finalParams.merge_base_commit_sha == "") {
+              finalParams.junie_ide = core.getInput('junie_ide')
+            } else {
+              finalParams.junie_ide = "None"
+            }      
             
             Object.keys(finalParams).forEach((key) => {
                 core.setOutput(key, finalParams[key]);
@@ -185,7 +192,7 @@ jobs:
             echo "Time passed since workflow start (ms): $time_passed"
             echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
             
-            export EJ_IDE_NAME="${{ inputs.junie_ide }}"
+            export EJ_IDE_NAME="${{ steps.workflow-params.outputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
             # GH agent git settings with devcontainer environment for resolve conflicts tasks
@@ -269,7 +276,7 @@ jobs:
           echo "Time passed since workflow start (ms): $time_passed"
           echo "Time limit set to (ms): $JUNIE_TIME_LIMIT"
 
-          export EJ_IDE_NAME="${{ inputs.junie_ide }}"
+          export EJ_IDE_NAME="${{ steps.workflow-params.outputs.junie_ide }}"
           export JUNIE_VERSION="${{  steps.workflow-params.outputs.junie_version }}"
           export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
