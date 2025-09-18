@@ -39,7 +39,7 @@ jobs:
         env:
           INPUT_PARAMS: ${{ inputs.workflow_params }}
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
-          INPUT_JUNIE_IDEA: ${{ inputs.junie_ide }}
+          INPUT_JUNIE_IDE: ${{ inputs.junie_ide }}
         with:
           script: |
             const params = JSON.parse(core.getInput('params'));
