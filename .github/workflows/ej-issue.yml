@@ -66,10 +66,10 @@ jobs:
               finalParams.ej_task_text =  `### ${finalParams.issue_title}` + '\n' + `${finalParams.issue_body}`;
             }
 
-            if (finalParams.merge_base_commit_sha == "") {
-              finalParams.junie_ide = core.getInput('junie_ide')
+            if (finalParams.merge_base_commit_sha) {
+              finalParams.junie_ide = "None"              
             } else {
-              finalParams.junie_ide = "None"
+              finalParams.junie_ide = core.getInput('junie_ide')
             }      
             
             Object.keys(finalParams).forEach((key) => {
@@ -291,7 +291,7 @@ jobs:
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
           cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r /tmp/junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log
+          cp -r /tmp/junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log || true
 
       - name: Save junie result summary
         id: junie_summary
