@@ -57,7 +57,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '365.1',
+              junie_version: '378.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
