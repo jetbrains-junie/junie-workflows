@@ -399,7 +399,7 @@ jobs:
 
 
       - name: Make Pull Request for the changes
-        if: steps.workflow-params.outputs.send_results != true && steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
+        if: steps.workflow-params.outputs.trigger != "Junie Portal" && steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.pull-request-token.outputs.pull_requests_creation_token }}
@@ -422,7 +422,7 @@ jobs:
       - uses: EndBug/add-and-commit@v9
         id: commit
         name: Commit changes to the same branch
-        if: steps.workflow-params.outputs.send_results == true || steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
+        if: steps.workflow-params.outputs.trigger == "Junie Portal" || steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
         with:
           author_name: junie-eap[bot]
           author_email: junie-eap[bot]@users.noreply.github.com
@@ -433,7 +433,7 @@ jobs:
 
       - name: Send result to backend
         id: send-result
-        if: steps.workflow-params.outputs.send_results == true
+        if: steps.workflow-params.outputs.trigger == "Junie Portal"
         run: |
           response_and_status="$(
             curl -s -w "\n%{http_code}" -X POST "${{ steps.workflow-params.outputs.api_base_url }}/portal/junie/upload-results" \
