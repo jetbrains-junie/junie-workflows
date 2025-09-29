@@ -435,10 +435,9 @@ jobs:
         id: send-result
         if: steps.workflow-params.outputs.trigger == 'Junie Portal'
         run: |
-          changes="${{ steps.junie_summary.outputs.summary }}"
           json=$(jq -n \
             --arg commit "${{ steps.commit.outputs.commit_long_sha }}" \
-            --arg summary "$changes" \
+            --arg summary "$(echo "${{ steps.junie_summary.outputs.summary }}")" \
             '{commit: $commit, summary: $summary}')
           response_and_status="$(
             curl -s -w "\n%{http_code}" -X POST "${{ steps.workflow-params.outputs.api_base_url }}/portal/junie/upload-results" \
