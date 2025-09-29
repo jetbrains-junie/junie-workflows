@@ -435,12 +435,16 @@ jobs:
         id: send-result
         if: steps.workflow-params.outputs.trigger == 'Junie Portal'
         run: |
+          json=$(jq -n \
+            --arg commit "${{ steps.commit.outputs.commit_long_sha }}" \
+            --arg summary "${{ steps.junie_summary.outputs.summary }}" \
+            '{commit: $commit, summary: $summary}')
           response_and_status="$(
             curl -s -w "\n%{http_code}" -X POST "${{ steps.workflow-params.outputs.api_base_url }}/portal/junie/upload-results" \
               -H "Content-Type: application/json" \
               -H "Accept: application/json" \
               -H "Authorization: ${{ steps.workflow-params.outputs.run_id_token }}" \
-              -d "{\"commit\":\"${{ steps.commit.outputs.commit_long_sha }}\",\"summary\":\"${{ steps.junie_summary.outputs.summary }}\" }"
+              -d "$json"
           )"
 
           status=$(echo "$response_and_status" | tail -n1)
