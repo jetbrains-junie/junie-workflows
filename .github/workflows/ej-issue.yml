@@ -399,7 +399,7 @@ jobs:
 
 
       - name: Make Pull Request for the changes
-        if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
+        if: steps.workflow-params.outputs.send_results != true && steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.pull-request-token.outputs.pull_requests_creation_token }}
@@ -420,8 +420,9 @@ jobs:
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
       - uses: EndBug/add-and-commit@v9
+        id: commit
         name: Commit changes to the same branch
-        if: steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
+        if: steps.workflow-params.outputs.send_results == true || steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
         with:
           author_name: junie-eap[bot]
           author_email: junie-eap[bot]@users.noreply.github.com
@@ -429,3 +430,20 @@ jobs:
             [issue-${{ steps.workflow-params.outputs.issue_id }}] ${{ steps.junie_summary.outputs.name }}
 
             ${{ steps.junie_summary.outputs.summary }}
+
+      - name: Send result to backend
+        id: send-result
+        if: steps.workflow-params.outputs.send_results == true
+        run: |
+          response_and_status="$(
+            curl -s -w "\n%{http_code}" -X POST "${{ steps.workflow-params.outputs.api_base_url }}/portal/junie/upload-results" \
+              -H "Content-Type: application/json" \
+              -H "Accept: application/json" \
+              -d "{\"runIdToken\":\"${{ steps.workflow-params.outputs.run_id_token }}\", \"commit\":\"${{ steps.commit.outputs.commit_long_sha }}\",\"summary\":\"${{ steps.junie_summary.outputs.summary }}\" }"
+          )"
+
+          status=$(echo "$response_and_status" | tail -n1)
+          body=$(echo "$response_and_status" | head -n -1)
+
+          echo "HTTP status: $status"
+          echo "Body: $body"
