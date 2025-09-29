@@ -439,7 +439,8 @@ jobs:
             curl -s -w "\n%{http_code}" -X POST "${{ steps.workflow-params.outputs.api_base_url }}/portal/junie/upload-results" \
               -H "Content-Type: application/json" \
               -H "Accept: application/json" \
-              -d "{\"runIdToken\":\"${{ steps.workflow-params.outputs.run_id_token }}\", \"commit\":\"${{ steps.commit.outputs.commit_long_sha }}\",\"summary\":\"${{ steps.junie_summary.outputs.summary }}\" }"
+              -H "Authorization: ${{ steps.workflow-params.outputs.run_id_token }}" \
+              -d "{\"commit\":\"${{ steps.commit.outputs.commit_long_sha }}\",\"summary\":\"${{ steps.junie_summary.outputs.summary }}\" }"
           )"
 
           status=$(echo "$response_and_status" | tail -n1)
