@@ -399,7 +399,7 @@ jobs:
 
 
       - name: Make Pull Request for the changes
-        if: steps.workflow-params.outputs.trigger == 'Junie Portal' && steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
+        if: steps.workflow-params.outputs.trigger != 'Junie Portal' && steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.pull-request-token.outputs.pull_requests_creation_token }}
