@@ -15,7 +15,7 @@ on:
       junie_ide:
         description: "IDE which will be used to handle tasks. Current available options are IdeaUltimate or PhpStorm"
         type: string
-        default: "IdeaUltimate"
+        default: "None"
         required: false
       fix_conflicts:
         description: "allow Junie to auto resolve PR conflicts"
@@ -57,7 +57,7 @@ jobs:
 
             const finalParams = { 
               junie_ide_version: '251',
-              junie_version: '378.1',
+              junie_version: '400.1',
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
