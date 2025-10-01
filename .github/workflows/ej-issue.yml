@@ -13,7 +13,7 @@ on:
         default: "ubuntu-latest"
         required: false
       junie_ide:
-        description: "IDE which will be used to handle tasks. Current available options are IdeaUltimate or PhpStorm"
+        description: "IDE which will be used to handle tasks. Current available options are IdeaUltimate or PhpStorm, defaults to standalone mode (None)"
         type: string
         default: "None"
         required: false
