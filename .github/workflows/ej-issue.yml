@@ -399,7 +399,7 @@ jobs:
 
 
       - name: Make Pull Request for the changes
-        if: steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
+        if: steps.workflow-params.outputs.trigger != 'Junie Portal' && steps.workflow-params.outputs.target_ref != steps.workflow-params.outputs.checkout_ref
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.pull-request-token.outputs.pull_requests_creation_token }}
@@ -420,9 +420,10 @@ jobs:
           base: ${{ steps.workflow-params.outputs.checkout_ref }}
 
       - uses: EndBug/add-and-commit@v9
-        name: Commit changes to the same branch
-        if: steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
+        name: Commit changes
+        if: steps.workflow-params.outputs.trigger == 'Junie Portal' || steps.workflow-params.outputs.target_ref == steps.workflow-params.outputs.checkout_ref
         with:
+          new_branch: ${{ steps.workflow-params.outputs.target_ref }}
           author_name: junie-eap[bot]
           author_email: junie-eap[bot]@users.noreply.github.com
           message: |
