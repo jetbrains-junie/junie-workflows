@@ -139,8 +139,8 @@ jobs:
             JUNIE_SECRETS_JSON
           runCmd: |
             set -e
-            mkdir /tmp/junie-work
-            JUNIE_WORK_TEMP="/tmp/junie-work"
+            JUNIE_WORK_TEMP=$(realpath "./.junie-work")
+            mkdir $JUNIE_WORK_TEMP
             echo "Junie working directory: $JUNIE_WORK_TEMP"
             
             command_exists() {
@@ -217,8 +217,8 @@ jobs:
 
           mkdir -p .junie-upload
 
-          docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
+          cp -r ./.junie-work/.matterhorn .junie-upload/.matterhorn || echo "No .matterhorn"
+          cp -r ./.junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log || echo "No idea-logs"
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
           # rename containerError.md to executionError.md if main.log exists (aka execution took place)
@@ -365,6 +365,7 @@ jobs:
           sudo rm -rf .junie-upload
           sudo rm -rf .output.txt
           sudo rm -rf solution.patch
+          sudo rm -rf .junie-work
 
           if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
             echo "Restoring tracked '.idea' directory"
