@@ -60,7 +60,6 @@ jobs:
               workflow_start_time: workflowStartTime,  
               ...params,                           
             };
-
             if (finalParams.issue_body) {
               finalParams.ej_task_text =  `### ${finalParams.issue_title}` + '\n' + `${finalParams.issue_body}`;
             }
