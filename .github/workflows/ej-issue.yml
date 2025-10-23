@@ -161,11 +161,23 @@ jobs:
             fi
 
             if [ -n "$JUNIE_SECRETS_JSON" ]; then
-              echo "$JUNIE_SECRETS_JSON" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' | while IFS= read -r line; do
-                if [ -n "$line" ]; then
-                  export "$line"
-                fi
+              declare -a env_kvs=()
+              
+              while IFS= read -r -d '' key && IFS= read -r -d '' value; do
+                [[ $key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || { echo "Skipping invalid key: $key" >&2; continue; }
+                env_kvs+=("$key=$value")
+              done < <(
+                jq -j '
+                  to_entries[]
+                  | select(.value != null)
+                  | .key, "\u0000", (.value | tostring), "\u0000"
+                ' <<< "$JUNIE_SECRETS_JSON"
+              )
+              
+              for kv in "${env_kvs[@]}"; do
+                export "$kv"
               done
+
               echo "Loaded environment variables from JUNIE_SECRETS_JSON"
             fi
             
@@ -258,6 +270,27 @@ jobs:
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
           export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
           export EJ_PROJECT=$(realpath ".")
+
+          if [ -n "$JUNIE_SECRETS_JSON" ]; then
+            declare -a env_kvs=()
+            
+            while IFS= read -r -d '' key && IFS= read -r -d '' value; do
+              [[ $key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || { echo "Skipping invalid key: $key" >&2; continue; }
+              env_kvs+=("$key=$value")
+            done < <(
+              jq -j '
+                to_entries[]
+                | select(.value != null)
+                | .key, "\u0000", (.value | tostring), "\u0000"
+              ' <<< "$JUNIE_SECRETS_JSON"
+            )
+          
+            for kv in "${env_kvs[@]}"; do
+              export "$kv"
+            done
+
+            echo "Loaded environment variables from JUNIE_SECRETS_JSON"
+          fi
 
           decoded_payload=$(echo "${{ steps.workflow-params.outputs.ingrazzio_token_jwt }}" | cut -d'.' -f2 | base64 -d)
           export EJ_AUTH_INGRAZZIO_GITHUB_TOKEN=$(echo "$decoded_payload" | sed -n 's/.*"sub"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
