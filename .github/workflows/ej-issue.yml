@@ -127,6 +127,7 @@ jobs:
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: false
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
+          JUNIE_API_KEY: ${{ secrets.JUNIE_API_KEY }}
         with:
           push: never
           env: |
@@ -137,6 +138,7 @@ jobs:
             MULTI_RUNS
             MATTERHORN_DEBUG_LOG
             JUNIE_SECRETS_JSON
+            JUNIE_API_KEY
           runCmd: |
             set -e
             mkdir /tmp/junie-work
@@ -260,6 +262,7 @@ jobs:
           MULTI_RUNS: true
           MATTERHORN_DEBUG_LOG: false
           JUNIE_SECRETS_JSON: ${{ secrets.JUNIE_SECRETS_JSON }}
+          JUNIE_API_KEY: ${{ secrets.JUNIE_API_KEY }}
         run: |
           mkdir /tmp/junie-work
           JUNIE_WORK_TEMP="/tmp/junie-work"
