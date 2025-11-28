@@ -207,6 +207,7 @@ jobs:
             export EJ_IDE_NAME="${{ steps.workflow-params.outputs.junie_ide }}"
             export JUNIE_VERSION="${{ steps.workflow-params.outputs.junie_version }}"
             export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
+            export JUNIE_TYPE="eap-business"
             # GH agent git settings with devcontainer environment for resolve conflicts tasks
             git config --global user.name 'junie-eap[bot]'
             git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
@@ -269,6 +270,7 @@ jobs:
           export EJ_FOLDER_IDE_CACHES=$JUNIE_WORK_TEMP
           export EJ_FOLDER_IDE_CONFIG=$JUNIE_WORK_TEMP
           export EJ_FOLDER_AGENT_CACHES=$JUNIE_WORK_TEMP
+          export JUNIE_TYPE="eap-business"
           export EJ_PROJECT=$(realpath ".")
 
           if [ -n "$JUNIE_SECRETS_JSON" ]; then
