@@ -198,7 +198,7 @@ jobs:
             git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
 
             chmod +x ./junie.sh 
-            /bin/sh ./junie.sh
+            /bin/sh ./junie.sh --output-format=json --json-output-file=result.json --flags=cloud-logger
 
 
       - name: Check if junie run failed
@@ -297,7 +297,7 @@ jobs:
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
           cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r  ls -al $HOME/.junie/logs/junie.log .junie-upload/.matterhorn/ || true
+          cp -r $HOME/.junie/logs/junie.log .junie-upload/.matterhorn/ || true
 
       - name: Save junie result summary
         id: junie_summary
