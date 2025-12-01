@@ -316,25 +316,6 @@ jobs:
           name=${name:-"${{ steps.workflow-params.outputs.fallback_result_title }}"}
           echo "name=$name" >> "$GITHUB_OUTPUT" 
 
-      - name: Archive output
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: output
-          path: |
-            .junie-upload/.matterhorn/out/
-            !.junie-upload/.matterhorn/out/attachments/**/*
-          retention-days: 7
-
-      - name: Archive attachments
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          if-no-files-found: ignore
-          name: attachments
-          path: .junie-upload/.matterhorn/out/attachments
-          retention-days: 7
-
       - name: Upload junie logs to GitHub
         if: always()
         uses: actions/upload-artifact@v4
@@ -343,21 +324,6 @@ jobs:
           path: .junie-upload/.matterhorn
           include-hidden-files: 'true'
           retention-days: 3
-
-      - name: Restore or remove .idea directory
-        run: |
-          sudo rm -rf .junie-upload
-          sudo rm -rf .output.txt
-          sudo rm -rf solution.patch
-
-          if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
-            echo "Restoring tracked '.idea' directory"
-            git checkout -- .idea
-            git clean -f -d .idea            
-          else
-            echo "Removing untracked '.idea' directory"
-            sudo rm -rf .idea
-          fi
 
       - name: Fetch PR creation token
         id: pull-request-token
