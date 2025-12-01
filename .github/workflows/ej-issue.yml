@@ -280,7 +280,7 @@ jobs:
           sudo chmod +x ./junie.sh
           echo "Before running junie.sh"
           ls -al
-          /bin/sh ./junie.sh  --output-format=json --json-output-file=result.json --flags=cloud-logger
+          /bin/sh ./junie.sh  --output-format=json --json-output-file=$JUNIE_WORK_TEMP/result.json --flags=cloud-logger
           echo "After running junie.sh"
           ls -al
 
@@ -296,8 +296,9 @@ jobs:
           sudo chown -R runner:runner /tmp/junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
-          cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r $HOME/.junie/logs/junie.log .junie-upload/.matterhorn/ || true
+          cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn || echo "No .matterhorn"
+          cp -r $HOME/.junie/logs/junie.log .junie-upload/.matterhorn/ || echo "No junie.log"
+          cp -r /tmp/junie-work/result.json .junie-upload/.matterhorn/ || echo "No result.json"
 
       - name: Save junie result summary
         id: junie_summary
