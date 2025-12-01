@@ -291,8 +291,7 @@ jobs:
           ls -al /tmp/junie-work
           echo "listing .matterhorn"
           ls -al /tmp/junie-work/.matterhorn
-          ls -al /tmp/junie-work/idea-logs
-          ls -al /tmp/junie-work/idea-logs/log
+          ls -al /tmp/junie-work/.matterhorn/logs
           sudo chown -R runner:runner /tmp/junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
