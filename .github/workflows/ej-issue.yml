@@ -280,7 +280,7 @@ jobs:
           sudo chmod +x ./junie.sh
           echo "Before running junie.sh"
           ls -al
-          /bin/sh ./junie.sh
+          /bin/sh ./junie.sh  --output-format=json --json-output-file=result.json --flags=cloud-logger
           echo "After running junie.sh"
           ls -al
 
