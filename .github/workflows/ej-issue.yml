@@ -198,7 +198,7 @@ jobs:
             git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
 
             chmod +x ./junie.sh 
-            /bin/sh ./junie.sh
+            /bin/sh ./junie.sh --output-format=json --json-output-file=result.json --flags=cloud-logger
 
 
       - name: Check if junie run failed
@@ -278,7 +278,7 @@ jobs:
           export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
           sudo chmod +x ./junie.sh
-          /bin/sh ./junie.sh
+          /bin/sh ./junie.sh --output-format=json --json-output-file=result.json --flags=cloud-logger
 
       - name: Extracting .idea and ej-logs for non-container run
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -288,7 +288,7 @@ jobs:
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
           cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r /tmp/junie-work/idea-logs/log/idea.log .junie-upload/.matterhorn/idea.log || true
+          cp -r $HOME/.junie/logs/junie.log .junie-upload/.matterhorn/ || true
 
       - name: Save junie result summary
         id: junie_summary
@@ -334,21 +334,6 @@ jobs:
           path: .junie-upload/.matterhorn
           include-hidden-files: 'true'
           retention-days: 3
-
-      - name: Restore or remove .idea directory
-        run: |
-          sudo rm -rf .junie-upload
-          sudo rm -rf .output.txt
-          sudo rm -rf solution.patch
-
-          if git ls-tree -d HEAD .idea | grep "\.idea" >/dev/null 2>&1; then
-            echo "Restoring tracked '.idea' directory"
-            git checkout -- .idea
-            git clean -f -d .idea            
-          else
-            echo "Removing untracked '.idea' directory"
-            sudo rm -rf .idea
-          fi
 
       - name: Fetch PR creation token
         id: pull-request-token
