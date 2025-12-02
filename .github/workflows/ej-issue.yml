@@ -304,7 +304,7 @@ jobs:
         id: junie_summary
         continue-on-error: true
         run: |
-          summary=$(jq -r '.content.output | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
+          summary=$(jq -r '.result | select(. != null)' .junie-upload/.matterhorn/result.json)
           echo "summary is $summary"
           {
             echo "summary<<EOF"
@@ -312,7 +312,7 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          name=$(jq -r '.content.title | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
+          name=$(jq -r '.taskName | select(. != null)' .junie-upload/.matterhorn/result.json)
           echo "name is $name, fallback is ${{ steps.workflow-params.outputs.fallback_result_title }}"
           name=${name:-"${{ steps.workflow-params.outputs.fallback_result_title }}"}
           echo "name=$name" >> "$GITHUB_OUTPUT" 
