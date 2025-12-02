@@ -334,6 +334,11 @@ jobs:
           include-hidden-files: 'true'
           retention-days: 3
 
+      - name: clear .junie-upload
+        if: always()
+        run: |
+          rm -Rf .junie-upload/ || echo "No .junie-upload to delete"
+
       - name: Fetch PR creation token
         id: pull-request-token
         run: |
