@@ -198,9 +198,8 @@ jobs:
             git config --global user.email 'junie-eap[bot]@users.noreply.github.com'
 
             chmod +x ./junie.sh 
-            /bin/sh ./junie.sh --output-format=json --json-output-file=result.json --flags=cloud-logger
-
-
+            /bin/sh ./junie.sh --output-format=json --json-output-file=$JUNIE_WORK_TEMP/.matterhorn/result.json --flags=cloud-logger
+            cp  $HOME/.junie/logs/junie.log $JUNIE_WORK_TEMP/.matterhorn/ || echo "No junie.log"
       - name: Check if junie run failed
         if: failure() && (hashFiles('.devcontainer/devcontainer.json') != '')
         run: |
@@ -216,7 +215,6 @@ jobs:
           mkdir -p .junie-upload
 
           docker cp "$CONTAINER_ID":"/tmp/junie-work/.matterhorn" .junie-upload/.matterhorn || echo "No .matterhorn"
-          docker cp "$CONTAINER_ID":"/tmp/junie-work/idea-logs/log/idea.log" .junie-upload/.matterhorn/idea.log || echo "No idea-logs"          
           sudo chown -R runner:runner ${{ github.workspace }} || true
 
           # rename containerError.md to executionError.md if main.log exists (aka execution took place)
@@ -278,7 +276,9 @@ jobs:
           export JUNIE_IDE_VERSION="${{ steps.workflow-params.outputs.junie_ide_version }}"
 
           sudo chmod +x ./junie.sh
-          /bin/sh ./junie.sh --output-format=json --json-output-file=result.json --flags=cloud-logger
+          /bin/sh ./junie.sh --output-format=json --json-output-file=$JUNIE_WORK_TEMP/.matterhorn/result.json --flags=cloud-logger || echo "Junie failed"
+          cp -r $HOME/.junie/logs/junie.log $JUNIE_WORK_TEMP/.matterhorn/ || echo "No junie.log"
+          if [ ! -e "$JUNIE_WORK_TEMP/.matterhorn/result.json" ]; then echo "No result.json"; fi
 
       - name: Extracting .idea and ej-logs for non-container run
         if: always() && (hashFiles('.devcontainer/devcontainer.json') == '')
@@ -287,14 +287,13 @@ jobs:
           sudo chown -R runner:runner /tmp/junie-work
           sudo chown -R runner:runner ${{ github.workspace }} || true
           mkdir .junie-upload
-          cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn
-          cp -r $HOME/.junie/logs/junie.log .junie-upload/.matterhorn/ || true
+          cp -r /tmp/junie-work/.matterhorn .junie-upload/.matterhorn || echo "No .matterhorn"
 
       - name: Save junie result summary
         id: junie_summary
         continue-on-error: true
         run: |
-          summary=$(jq -r '.content.output | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
+          summary=$(jq -r '.result | select(. != null)' .junie-upload/.matterhorn/result.json)
           echo "summary is $summary"
           {
             echo "summary<<EOF"
@@ -302,7 +301,7 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          name=$(jq -r '.content.title | select(. != null)' .junie-upload/.matterhorn/issue_md.*)
+          name=$(jq -r '.taskName | select(. != null)' .junie-upload/.matterhorn/result.json)
           echo "name is $name, fallback is ${{ steps.workflow-params.outputs.fallback_result_title }}"
           name=${name:-"${{ steps.workflow-params.outputs.fallback_result_title }}"}
           echo "name=$name" >> "$GITHUB_OUTPUT" 
